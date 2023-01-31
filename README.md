@@ -12,6 +12,7 @@ To build it from a bash terminal, it should be sufficient to:
 
 ```
 git clone git@github.com:poseidon-fisheries/poseidon-gui.git
+cd poseidon-gui
 git submodules update --init
 ./gradlew build
 ```
