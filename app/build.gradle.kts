@@ -41,6 +41,10 @@ tasks.withType<Zip> {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+tasks.withType<Test> {
+    maxHeapSize = "4G"
+}
+
 spotless {
     java {
         palantirJavaFormat()
