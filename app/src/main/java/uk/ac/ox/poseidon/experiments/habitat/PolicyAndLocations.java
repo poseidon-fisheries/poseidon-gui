@@ -18,7 +18,11 @@
 
 package uk.ac.ox.poseidon.experiments.habitat;
 
-
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import sim.field.grid.IntGrid2D;
 import uk.ac.ox.oxfish.biology.initializer.BiologyInitializer;
 import uk.ac.ox.oxfish.biology.initializer.factory.FromLeftToRightFactory;
@@ -36,22 +40,13 @@ import uk.ac.ox.oxfish.utility.AlgorithmFactory;
 import uk.ac.ox.oxfish.utility.FishStateUtilities;
 import uk.ac.ox.oxfish.utility.parameters.FixedDoubleParameter;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 public class PolicyAndLocations {
 
-
-    //one dimensional TAC
+    // one dimensional TAC
     public static void main(String[] args) throws IOException {
-
 
         Path mainDirectory = Paths.get("runs", "analysis");
         mainDirectory.toFile().mkdirs();
-
 
         /***
          *       ___             ___              _
@@ -60,44 +55,28 @@ public class PolicyAndLocations {
          *      \___/|_||_\___| |___/ .__/\___\__|_\___/__/
          *                          |_|
          */
-
         FileWriter writer = new FileWriter(mainDirectory.resolve("tac1.csv").toFile());
         TACMultiFactory tacRegulation = new TACMultiFactory();
         tacRegulation.setFirstSpeciesQuota(new FixedDoubleParameter(400000));
-        tacRegulation.setOtherSpeciesQuota(new FixedDoubleParameter(100000)); //80-20 proportion (used in the two species world)
-        ExperimentResult simulation = policyLocationGrid(
-            new FromLeftToRightFactory(),
-            tacRegulation,
-            0L,
-            5,
-            null
-        );
+        tacRegulation.setOtherSpeciesQuota(
+                new FixedDoubleParameter(100000)); // 80-20 proportion (used in the two species world)
+        ExperimentResult simulation = policyLocationGrid(new FromLeftToRightFactory(), tacRegulation, 0L, 5, null);
         writer.write(simulation.getCumulativeTrawls());
         writer.close();
-
 
         writer = new FileWriter(mainDirectory.resolve("itq1.csv").toFile());
         MultiITQFactory multiITQFactory = new MultiITQFactory();
         multiITQFactory.setQuotaFirstSpecie(new FixedDoubleParameter(4000));
-        multiITQFactory.setQuotaOtherSpecies(new FixedDoubleParameter(1000)); //80-20 proportion (used in the two species world)
-        simulation = policyLocationGrid(new FromLeftToRightFactory(),
-            multiITQFactory,
-            0L,
-            5, null
-        );
+        multiITQFactory.setQuotaOtherSpecies(
+                new FixedDoubleParameter(1000)); // 80-20 proportion (used in the two species world)
+        simulation = policyLocationGrid(new FromLeftToRightFactory(), multiITQFactory, 0L, 5, null);
         writer.write(simulation.getCumulativeTrawls());
         writer.close();
-
 
         writer = new FileWriter(mainDirectory.resolve("free1.csv").toFile());
-        simulation = policyLocationGrid(new FromLeftToRightFactory(),
-            new AnarchyFactory(),
-            0L,
-            5, null
-        );
+        simulation = policyLocationGrid(new FromLeftToRightFactory(), new AnarchyFactory(), 0L, 5, null);
         writer.write(simulation.getCumulativeTrawls());
         writer.close();
-
 
         /***
          *      _____              ___              _
@@ -108,108 +87,98 @@ public class PolicyAndLocations {
          */
         HalfBycatchFactory splitBiology = new HalfBycatchFactory();
         splitBiology.setCarryingCapacity(new FixedDoubleParameter(5000d));
-        FileWriter efficiency = new FileWriter(mainDirectory.resolve("efficiency.csv").toFile());
-
+        FileWriter efficiency =
+                new FileWriter(mainDirectory.resolve("efficiency.csv").toFile());
 
         writer = new FileWriter(mainDirectory.resolve("tac2.csv").toFile());
         simulation = policyLocationGrid(
-            splitBiology,
-            tacRegulation,
-            0L,
-            5,
-            mainDirectory.resolve("tac2_hist.csv").toFile()
-        );
+                splitBiology,
+                tacRegulation,
+                0L,
+                5,
+                mainDirectory.resolve("tac2_hist.csv").toFile());
         writer.write(simulation.getCumulativeTrawls());
         writer.close();
 
         efficiencyWrite(simulation, efficiency, "tac");
 
-
         writer = new FileWriter(mainDirectory.resolve("itq2.csv").toFile());
         simulation = policyLocationGrid(
-            splitBiology,
-            multiITQFactory,
-            0L,
-            5,
-            mainDirectory.resolve("itq2_hist.csv").toFile()
-        );
+                splitBiology,
+                multiITQFactory,
+                0L,
+                5,
+                mainDirectory.resolve("itq2_hist.csv").toFile());
         writer.write(simulation.getCumulativeTrawls());
         writer.close();
 
-
         efficiencyWrite(simulation, efficiency, "itq");
 
-
         writer = new FileWriter(mainDirectory.resolve("free2.csv").toFile());
-        simulation = policyLocationGrid(splitBiology,
-            new AnarchyFactory(),
-            0L,
-            5, mainDirectory.resolve("free2_hist.csv").toFile()
-        );
+        simulation = policyLocationGrid(
+                splitBiology,
+                new AnarchyFactory(),
+                0L,
+                5,
+                mainDirectory.resolve("free2_hist.csv").toFile());
         writer.write(simulation.getCumulativeTrawls());
         writer.close();
         efficiencyWrite(simulation, efficiency, "free");
 
         efficiency.flush();
         efficiency.close();
-
     }
 
-    private static void efficiencyWrite(
-        ExperimentResult simulation, FileWriter efficiency, final String policy
-    ) throws IOException {
+    private static void efficiencyWrite(ExperimentResult simulation, FileWriter efficiency, final String policy)
+            throws IOException {
 
-        efficiency.write(
-            policy + "," +
-                simulation.getModel().
-                    getYearlyDataSet().getColumn(simulation.getModel().getSpecies().get(0) +
-                        " " +
-                        AbstractMarket.LANDINGS_COLUMN_NAME).stream().reduce(0d, (a, b) -> a + b) +
-                ", " +
-                simulation.getModel().getYearlyDataSet().
-                    getColumn(simulation.getModel().getSpecies().get(1) +
-                        " " +
-                        AbstractMarket.LANDINGS_COLUMN_NAME).stream().reduce(
-                        0d,
-                        (a, b) -> a + b
-                    ) +
-                ", " +
-                simulation.getModel().getYearlyDataSet().
-                    getColumn(FisherYearlyTimeSeries.FUEL_CONSUMPTION).stream().reduce(
-                        0d,
-                        (a, b) -> a + b
-                    )
+        efficiency.write(policy + ","
+                + simulation
+                        .getModel()
+                        .getYearlyDataSet()
+                        .getColumn(
+                                simulation.getModel().getSpecies().get(0) + " " + AbstractMarket.LANDINGS_COLUMN_NAME)
+                        .stream()
+                        .reduce(0d, (a, b) -> a + b)
+                + ", "
+                + simulation
+                        .getModel()
+                        .getYearlyDataSet()
+                        .getColumn(
+                                simulation.getModel().getSpecies().get(1) + " " + AbstractMarket.LANDINGS_COLUMN_NAME)
+                        .stream()
+                        .reduce(0d, (a, b) -> a + b)
+                + ", "
+                + simulation.getModel().getYearlyDataSet().getColumn(FisherYearlyTimeSeries.FUEL_CONSUMPTION).stream()
+                        .reduce(0d, (a, b) -> a + b)
                 + "\n");
     }
 
-
     private static ExperimentResult policyLocationGrid(
-        final AlgorithmFactory<? extends BiologyInitializer> biologyInitializer,
-        final AlgorithmFactory<? extends Regulation> regulation,
-        long seed,
-        int burnIn,
-        File histogramFile
-    ) {
+            final AlgorithmFactory<? extends BiologyInitializer> biologyInitializer,
+            final AlgorithmFactory<? extends Regulation> regulation,
+            long seed,
+            int burnIn,
+            File histogramFile) {
 
         final FishState state = new FishState(seed);
-
 
         PrototypeScenario scenario = new PrototypeScenario();
         scenario.setMapMakerDedicatedRandomSeed(seed);
         state.setScenario(scenario);
-        //world split in half
+        // world split in half
         scenario.setBiologyInitializer(biologyInitializer);
         SimpleMapInitializerFactory simpleMap = new SimpleMapInitializerFactory();
         simpleMap.setCellSizeInKilometers(new FixedDoubleParameter(2d));
         simpleMap.setCoastalRoughness(new FixedDoubleParameter(0d));
         scenario.setMapInitializer(simpleMap);
-        scenario.forcePortPosition(new int[]{40, 25});
+        scenario.forcePortPosition(new int[] {40, 25});
         scenario.setRegulation(regulation);
         scenario.setUsePredictors(true);
 
-
         state.start();
-        double[][] theGrid = new double[state.getMap().getWidth()][state.getMap().getHeight()];
+        double[][] theGrid =
+                new double[state.getMap().getWidth()][state.getMap().getHeight()];
 
         while (state.getYear() < burnIn) {
             state.schedule.step(state);
@@ -221,17 +190,14 @@ public class PolicyAndLocations {
             }
         }
 
-
         if (histogramFile != null)
             FishStateUtilities.pollHistogramToFile(
-                state.getFishers(), histogramFile,
-                fisher -> fisher.getLatestYearlyObservation(FisherYearlyTimeSeries.CASH_FLOW_COLUMN)
-            );
+                    state.getFishers(),
+                    histogramFile,
+                    fisher -> fisher.getLatestYearlyObservation(FisherYearlyTimeSeries.CASH_FLOW_COLUMN));
 
         return new ExperimentResult(state, FishStateUtilities.gridToCSV(theGrid));
-
     }
-
 
     public static class ExperimentResult {
 
@@ -252,6 +218,4 @@ public class PolicyAndLocations {
             return cumulativeTrawls;
         }
     }
-
-
 }

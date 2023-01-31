@@ -18,12 +18,6 @@
 
 package uk.ac.ox.poseidon.gui.widget;
 
-import org.metawidget.swing.SwingMetawidget;
-import uk.ac.ox.oxfish.utility.AlgorithmFactories;
-import uk.ac.ox.oxfish.utility.AlgorithmFactory;
-import uk.ac.ox.poseidon.gui.MetaInspector;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,6 +25,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.swing.*;
+import org.metawidget.swing.SwingMetawidget;
+import uk.ac.ox.oxfish.utility.AlgorithmFactories;
+import uk.ac.ox.oxfish.utility.AlgorithmFactory;
+import uk.ac.ox.poseidon.gui.MetaInspector;
 
 /**
  * A panel containing a combo-box to select a strategy factory
@@ -56,21 +55,22 @@ public class StrategyFactoryDialog<T> extends JPanel implements ActionListener {
     public StrategyFactoryDialog(Class strategyClass) {
         LinkedList<JRadioButton> buttons = new LinkedList<>();
 
-        //first see if it's a super-class, that makes it easy
-        Map<String, ? extends Supplier<? extends AlgorithmFactory<?>>> constructorMap
-            = AlgorithmFactories.CONSTRUCTOR_MAP.get(strategyClass);
+        // first see if it's a super-class, that makes it easy
+        Map<String, ? extends Supplier<? extends AlgorithmFactory<?>>> constructorMap =
+                AlgorithmFactories.CONSTRUCTOR_MAP.get(strategyClass);
         instancedConstructorMap = new HashMap<>();
         this.setLayout(new BorderLayout());
 
-        //initially empty settings panel
+        // initially empty settings panel
         settings = new JPanel(new CardLayout());
         this.add(new JScrollPane(settings), BorderLayout.CENTER);
 
-        //create radio buttons on the left
+        // create radio buttons on the left
         JPanel factories = new JPanel(new GridLayout(0, 1));
         this.add(factories, BorderLayout.WEST);
         ButtonGroup factoryGroup = new ButtonGroup();
-        for (Map.Entry<String, ? extends Supplier<? extends AlgorithmFactory>> factoryItem : constructorMap.entrySet()) {
+        for (Map.Entry<String, ? extends Supplier<? extends AlgorithmFactory>> factoryItem :
+                constructorMap.entrySet()) {
             final JRadioButton factoryButton = new JRadioButton(factoryItem.getKey());
             factoryButton.setActionCommand(factoryItem.getKey());
             factories.add(factoryButton);
@@ -78,23 +78,19 @@ public class StrategyFactoryDialog<T> extends JPanel implements ActionListener {
             factoryGroup.add(factoryButton);
             factoryButton.addActionListener(this);
 
-            //create widget
+            // create widget
             SwingMetawidget widget = new SwingMetawidget();
             MetaInspector.STANDARD_WIDGET_SETUP(widget, null);
             final AlgorithmFactory toInspect = factoryItem.getValue().get();
             instancedConstructorMap.put(factoryItem.getKey(), toInspect);
             widget.setToInspect(toInspect);
             settings.add(factoryItem.getKey(), widget);
-
         }
 
         factoryGroup.clearSelection();
-        //foce first to be selection
+        // foce first to be selection
         buttons.getFirst().doClick();
-
-
     }
-
 
     /**
      * Invoked when an action occurs.
@@ -103,7 +99,7 @@ public class StrategyFactoryDialog<T> extends JPanel implements ActionListener {
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        //new scenario!
+        // new scenario!
         selected = instancedConstructorMap.get(e.getActionCommand());
 
         CardLayout cl = (CardLayout) (settings.getLayout());

@@ -18,23 +18,20 @@
 
 package uk.ac.ox.poseidon.gui;
 
-import org.metawidget.swing.SwingMetawidget;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.*;
+import org.metawidget.swing.SwingMetawidget;
 
 /**
  * Created by carrknight on 9/25/16.
  */
 public class BatchRunnerSetup extends JPanel {
 
-
     private final BatchRunnerFactory factory = new BatchRunnerFactory();
 
     private final SwingMetawidget widget = new SwingMetawidget();
-
 
     /**
      * Constructs a new frame that is initially invisible.
@@ -51,47 +48,36 @@ public class BatchRunnerSetup extends JPanel {
      */
     public BatchRunnerSetup() throws HeadlessException {
 
-
         setLayout(new BorderLayout());
 
         MetaInspector.STANDARD_WIDGET_SETUP(widget, null);
-
 
         widget.setToInspect(factory);
         widget.setLayout(new BoxLayout(widget, BoxLayout.Y_AXIS));
         add(widget, BorderLayout.CENTER);
 
-
         JButton start = new JButton("Start");
         add(start, BorderLayout.SOUTH);
-        start.addActionListener(
-            new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    System.out.println(factory.getColumnsToPrint());
-                    JFrame parent = (JFrame)
-                        SwingUtilities.getWindowAncestor(BatchRunnerSetup.this);
-                    //  parent.removeAll();
-                    start.removeActionListener(this);
+        start.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println(factory.getColumnsToPrint());
+                JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(BatchRunnerSetup.this);
+                //  parent.removeAll();
+                start.removeActionListener(this);
 
-                    //    parent.setVisible(false);
-                    BatchRunnerProgress progress = new BatchRunnerProgress(
-                        factory.build(),
-                        factory.getNumberOfRuns()
-                    );
-                    parent.setContentPane(progress);
-                    parent.setSize(800, 600);
-                    parent.pack();
-                    parent.revalidate();
-                    parent.setVisible(true);
-                    parent.repaint();
-                    progress.getTask().execute();
-
-                }
+                //    parent.setVisible(false);
+                BatchRunnerProgress progress = new BatchRunnerProgress(factory.build(), factory.getNumberOfRuns());
+                parent.setContentPane(progress);
+                parent.setSize(800, 600);
+                parent.pack();
+                parent.revalidate();
+                parent.setVisible(true);
+                parent.repaint();
+                progress.getTask().execute();
             }
-        );
+        });
     }
-
 
     public static void main(String[] args) {
         JFrame jFrame = new JFrame();
@@ -99,6 +85,5 @@ public class BatchRunnerSetup extends JPanel {
         jFrame.add(new BatchRunnerSetup());
         jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jFrame.setVisible(true);
-
     }
 }

@@ -1,5 +1,6 @@
 plugins {
     application
+    id("com.diffplug.spotless") version "6.14.0"
 }
 
 repositories {
@@ -38,4 +39,14 @@ tasks.withType<Tar> {
 
 tasks.withType<Zip> {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+spotless {
+    java {
+        palantirJavaFormat()
+        removeUnusedImports()
+        importOrder("")
+        trimTrailingWhitespace()
+        formatAnnotations()
+    }
 }

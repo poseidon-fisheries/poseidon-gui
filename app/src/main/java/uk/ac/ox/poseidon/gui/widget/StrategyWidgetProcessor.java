@@ -18,23 +18,21 @@
 
 package uk.ac.ox.poseidon.gui.widget;
 
-import org.apache.commons.beanutils.PropertyUtils;
-import org.metawidget.swing.SwingMetawidget;
-import org.metawidget.widgetprocessor.iface.WidgetProcessor;
-import sim.display.GUIState;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import javax.swing.*;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.metawidget.swing.SwingMetawidget;
+import org.metawidget.widgetprocessor.iface.WidgetProcessor;
+import sim.display.GUIState;
 
 /**
  * finds actual strategies and place a button to change them on the fly
  * Created by carrknight on 6/8/15.
  */
 public class StrategyWidgetProcessor implements WidgetProcessor<JComponent, SwingMetawidget> {
-
 
     /**
      * strategies require fishstate reference to be instantiated from the factory so we can only use this
@@ -63,69 +61,63 @@ public class StrategyWidgetProcessor implements WidgetProcessor<JComponent, Swin
      */
     @Override
     public JComponent processWidget(
-        JComponent widget, String elementName, Map<String, String> attributes, SwingMetawidget metawidget
-    ) {
+            JComponent widget, String elementName, Map<String, String> attributes, SwingMetawidget metawidget) {
 
-        if (!attributes.containsKey(StrategyInspector.KEY) || !(widget instanceof SwingMetawidget))
-            return widget;
+        if (!attributes.containsKey(StrategyInspector.KEY) || !(widget instanceof SwingMetawidget)) return widget;
 
         try {
 
-            //contains the key
-            final Object toModify = DoubleParameterWidgetProcessor.getToInspectByTraversingMPath(
-                (SwingMetawidget) widget, metawidget);
-            //get the super class
+            // contains the key
+            final Object toModify =
+                    DoubleParameterWidgetProcessor.getToInspectByTraversingMPath((SwingMetawidget) widget, metawidget);
+            // get the super class
             Class superClass = Class.forName(attributes.get(StrategyInspector.KEY));
-            //get current class (that's the name on the button)
-            Class actualClass = PropertyUtils.getNestedProperty(
-                toModify,
-                attributes.get("name")
-            ).getClass();
+            // get current class (that's the name on the button)
+            Class actualClass = PropertyUtils.getNestedProperty(toModify, attributes.get("name"))
+                    .getClass();
 
-            //add a button to change strategy
+            // add a button to change strategy
             JButton changeStrategy = new JButton(actualClass.getSimpleName());
             widget.add(changeStrategy);
             changeStrategy.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    //if possible, pause!
+                    // if possible, pause!
 
                     StrategyFactoryDialog dialog = new StrategyFactoryDialog(superClass);
-                    int returned = JOptionPane.showOptionDialog(widget,
-                        dialog,
-                        "Select New Strategy",
-                        JOptionPane.OK_CANCEL_OPTION,
-                        JOptionPane.QUESTION_MESSAGE,
-                        null,
-                        null,
-                        null
-                    );
-                    //if ok was pressed on the dialog
+                    int returned = JOptionPane.showOptionDialog(
+                            widget,
+                            dialog,
+                            "Select New Strategy",
+                            JOptionPane.OK_CANCEL_OPTION,
+                            JOptionPane.QUESTION_MESSAGE,
+                            null,
+                            null,
+                            null);
+                    // if ok was pressed on the dialog
                     if (returned == JOptionPane.OK_OPTION) {
                         final Object newStrategy = dialog.getSelected().apply(state.state);
-                        //use the beansutils to set the new value to the field
+                        // use the beansutils to set the new value to the field
                         try {
                             synchronized (state.state.schedule) {
                                 PropertyUtils.setSimpleProperty(
-                                    //the object to modify
-                                    toModify,
-                                    //the name of the field
-                                    attributes.get("name"),
-                                    //the new value (table lookup)
-                                    newStrategy
-                                );
+                                        // the object to modify
+                                        toModify,
+                                        // the name of the field
+                                        attributes.get("name"),
+                                        // the new value (table lookup)
+                                        newStrategy);
                             }
                         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
                             System.err.print("failed to set new strategy! " + e1);
                             e1.printStackTrace();
                         }
 
-                        //reb
+                        // reb
                         metawidget.setToInspect(metawidget.getToInspect());
                     }
                 }
             });
-
 
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
@@ -134,7 +126,5 @@ public class StrategyWidgetProcessor implements WidgetProcessor<JComponent, Swin
             e.printStackTrace();
         }
         return widget;
-
-
     }
 }

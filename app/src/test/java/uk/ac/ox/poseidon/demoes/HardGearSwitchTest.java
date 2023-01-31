@@ -33,7 +33,6 @@ import uk.ac.ox.poseidon.experiments.HardGearSwitch;
  */
 public class HardGearSwitchTest {
 
-
     @Test
     public void prototypeWorldHardGearSwitch() throws Exception {
         WellMixedBiologyFactory biologyInitializer = new WellMixedBiologyFactory();
@@ -43,34 +42,29 @@ public class HardGearSwitchTest {
 
         FishState model = HardGearSwitch.buildHardSwitchGearDemo(biologyInitializer, mapInitializer, 0, 1, 500, 4500);
 
-
         model.start();
 
-
-        while (model.getYear() < 15)
-            model.schedule.step(model);
+        while (model.getYear() < 15) model.schedule.step(model);
 
         Double zeroCatchers = model.getLatestYearlyObservation("Species " + 0 + " Catchers");
         Double firstCatchers = model.getLatestYearlyObservation("Species " + 1 + " Catchers");
 
-        Assert.assertTrue(zeroCatchers < 100); //not everybody is catching 0
-        Assert.assertTrue(zeroCatchers > 0); //not everybody is catching 0
-        Assert.assertTrue(firstCatchers < 100); //not everybody is catching 1
-        Assert.assertTrue(firstCatchers > 0); //not everybody is catching 1
-        Assert.assertEquals(firstCatchers + zeroCatchers, 100, .00001); //not everybody is catching 1
-        double firstQuotaEfficiency = model.getLatestYearlyObservation(
-            model.getSpecies().get(0) + " " + AbstractMarket.LANDINGS_COLUMN_NAME) / (500 * 100);
-        double secondQuotaEfficiency = model.getLatestYearlyObservation(
-            model.getSpecies().get(1) + " " + AbstractMarket.LANDINGS_COLUMN_NAME) / (4500 * 100);
+        Assert.assertTrue(zeroCatchers < 100); // not everybody is catching 0
+        Assert.assertTrue(zeroCatchers > 0); // not everybody is catching 0
+        Assert.assertTrue(firstCatchers < 100); // not everybody is catching 1
+        Assert.assertTrue(firstCatchers > 0); // not everybody is catching 1
+        Assert.assertEquals(firstCatchers + zeroCatchers, 100, .00001); // not everybody is catching 1
+        double firstQuotaEfficiency =
+                model.getLatestYearlyObservation(model.getSpecies().get(0) + " " + AbstractMarket.LANDINGS_COLUMN_NAME)
+                        / (500 * 100);
+        double secondQuotaEfficiency =
+                model.getLatestYearlyObservation(model.getSpecies().get(1) + " " + AbstractMarket.LANDINGS_COLUMN_NAME)
+                        / (4500 * 100);
 
         System.out.println(firstQuotaEfficiency + " ------ " + secondQuotaEfficiency);
         Assert.assertTrue(firstQuotaEfficiency <= 1 + FishStateUtilities.EPSILON);
         Assert.assertTrue(firstQuotaEfficiency > .7);
         Assert.assertTrue(secondQuotaEfficiency <= 1 + FishStateUtilities.EPSILON);
         Assert.assertTrue(secondQuotaEfficiency > .7);
-
-
     }
-
-
 }

@@ -18,6 +18,8 @@
 
 package uk.ac.ox.poseidon.gui.widget;
 
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 import org.metawidget.inspector.composite.CompositeInspector;
 import org.metawidget.inspector.composite.CompositeInspectorConfig;
@@ -27,38 +29,32 @@ import uk.ac.ox.oxfish.fisher.strategies.destination.factory.FixedFavoriteDestin
 import uk.ac.ox.oxfish.fisher.strategies.destination.factory.RandomFavoriteDestinationFactory;
 import uk.ac.ox.oxfish.utility.AlgorithmFactory;
 
-import static org.junit.Assert.assertTrue;
-
 /**
  * Created by carrknight on 5/29/15.
  */
 public class AlgorithmFactoryInspectorTest {
 
-
     @Test
     public void readsCorrectly() throws Exception {
 
-        //read serialize, make sure the StrategyFactoryInspector was fired
+        // read serialize, make sure the StrategyFactoryInspector was fired
         ToSerialize serialize = new ToSerialize();
-        CompositeInspectorConfig inspectorConfig = new CompositeInspectorConfig().setInspectors(
-            new PropertyTypeInspector(),
-            new StrategyFactoryInspector()
-        );
+        CompositeInspectorConfig inspectorConfig = new CompositeInspectorConfig()
+                .setInspectors(new PropertyTypeInspector(), new StrategyFactoryInspector());
         final CompositeInspector inspector = new CompositeInspector(inspectorConfig);
-        //inspect!
+        // inspect!
         String attributeMap = inspector.inspect(serialize, serialize.getClass().getTypeName());
-        //example of what should be in: factory_strategy="uk.ac.ox.oxfish.fisher.strategies.destination.DestinationStrategy"
+        // example of what should be in:
+        // factory_strategy="uk.ac.ox.oxfish.fisher.strategies.destination.DestinationStrategy"
         String lookingFor = "factory_strategy=\"" + DestinationStrategy.class.getName() + "\"";
         assertTrue(attributeMap.contains(lookingFor));
 
-        //it should also work for serialize2 (that is, it shouldn't be fooled by the current value)
+        // it should also work for serialize2 (that is, it shouldn't be fooled by the current value)
         ToSerialize2 two = new ToSerialize2();
         attributeMap = inspector.inspect(two, two.getClass().getTypeName());
         assertTrue(attributeMap.contains(lookingFor));
-
     }
 }
-
 
 /**
  * this class exists only so that we can make sure the MetaInspector reads  correctly.
@@ -86,9 +82,7 @@ class ToSerialize {
         return firstFactory;
     }
 
-    public void setFirstFactory(
-        AlgorithmFactory<? extends DestinationStrategy> firstFactory
-    ) {
+    public void setFirstFactory(AlgorithmFactory<? extends DestinationStrategy> firstFactory) {
         this.firstFactory = firstFactory;
     }
 }
@@ -116,10 +110,7 @@ class ToSerialize2 {
         return firstFactory;
     }
 
-    public void setFirstFactory(
-        AlgorithmFactory<? extends DestinationStrategy> firstFactory
-    ) {
+    public void setFirstFactory(AlgorithmFactory<? extends DestinationStrategy> firstFactory) {
         this.firstFactory = firstFactory;
     }
 }
-

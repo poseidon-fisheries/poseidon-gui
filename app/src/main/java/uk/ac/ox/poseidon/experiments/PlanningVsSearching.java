@@ -18,6 +18,9 @@
 
 package uk.ac.ox.poseidon.experiments;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import sim.display.Console;
 import sim.engine.SimState;
 import sim.engine.Steppable;
@@ -45,13 +48,7 @@ import uk.ac.ox.oxfish.utility.parameters.UniformDoubleParameter;
 import uk.ac.ox.oxfish.utility.yaml.FishYAML;
 import uk.ac.ox.poseidon.gui.FishGUI;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-
 public class PlanningVsSearching {
-
 
     public static void main(String[] args) throws IOException {
 
@@ -69,7 +66,7 @@ public class PlanningVsSearching {
         regression.setxBandwidth(new UniformDoubleParameter(1, 1000));
         regression.setyBandwidth(new UniformDoubleParameter(1, 1000));
         regression.setNeighbors(new UniformDoubleParameter(1, 10));
-        //regression.setForgettingFactor(new FixedDoubleParameter(.95d));
+        // regression.setForgettingFactor(new FixedDoubleParameter(.95d));
         kernel.setRegression(regression);
         //  DataColumn[] structuredSearch = runSimulation(kernel);
 
@@ -82,22 +79,17 @@ public class PlanningVsSearching {
         DataColumn[] plannerLearner = runSimulation(strategy);
 
         FishStateUtilities.printCSVColumnsToFile(
-            Paths.get("runs", "search_vs_plan", "distances.csv").toFile(),
-            exploreExploit[0],
-            perfectPlanner[0],
-            //     structuredSearch[0],
-            plannerLearner[0]
-        );
-
-
+                Paths.get("runs", "search_vs_plan", "distances.csv").toFile(),
+                exploreExploit[0],
+                perfectPlanner[0],
+                //     structuredSearch[0],
+                plannerLearner[0]);
     }
 
-    private static DataColumn[] runSimulation(
-        final AlgorithmFactory<? extends DestinationStrategy> destinationStrategy
-    ) throws IOException {
+    private static DataColumn[] runSimulation(final AlgorithmFactory<? extends DestinationStrategy> destinationStrategy)
+            throws IOException {
         FishYAML yaml = new FishYAML();
-        String scenarioYaml = String.join("\n", Files.readAllLines(
-            FirstPaper.INPUT_FOLDER.resolve("oil_travel.yaml")));
+        String scenarioYaml = String.join("\n", Files.readAllLines(FirstPaper.INPUT_FOLDER.resolve("oil_travel.yaml")));
         PrototypeScenario scenario = yaml.loadAs(scenarioYaml, PrototypeScenario.class);
         scenario.setFishers(25);
         scenario.setMapMakerDedicatedRandomSeed(0L);
@@ -108,24 +100,20 @@ public class PlanningVsSearching {
         state.attachAdditionalGatherers();
         state.start();
 
-        while (state.getYear() < 2)
-            state.schedule.step(state);
+        while (state.getYear() < 2) state.schedule.step(state);
         state.getPorts().iterator().next().setGasPricePerLiter(3d);
-        while (state.getYear() < 4)
-            state.schedule.step(state);
+        while (state.getYear() < 4) state.schedule.step(state);
 
-        return new DataColumn[]{
+        return new DataColumn[] {
             state.getDailyDataSet().getColumn("Average Distance From Port"),
             state.getYearlyDataSet().getColumn("NET_CASH_FLOW")
         };
     }
 
-
     public static void gui(String[] args) throws IOException {
 
         FishYAML yaml = new FishYAML();
-        String scenarioYaml = String.join("\n", Files.readAllLines(
-            FirstPaper.INPUT_FOLDER.resolve("oil_travel.yaml")));
+        String scenarioYaml = String.join("\n", Files.readAllLines(FirstPaper.INPUT_FOLDER.resolve("oil_travel.yaml")));
         PrototypeScenario scenario = yaml.loadAs(scenarioYaml, PrototypeScenario.class);
         scenario.setFishers(100);
         scenario.setMapMakerDedicatedRandomSeed(0L);
@@ -152,50 +140,43 @@ public class PlanningVsSearching {
                         fisher.getTags().add("blue");
                         //   fisher.getTags().add("ship");
                     }
-
                 }
             }
 
             @Override
-            public void turnOff() {
-
-            }
+            public void turnOff() {}
         });
         EquidegreeBuilder builder = (EquidegreeBuilder) scenario.getNetworkBuilder();
-        //connect people that have the same destination strategy
+        // connect people that have the same destination strategy
         builder.addPredicate((from, to) -> {
             return (from.getID() < 50 && to.getID() < 50) || (from.getID() >= 50 && to.getID() >= 50);
         });
         scenario.setNetworkBuilder(builder);
 
-
         state.setScenario(scenario);
         state.registerStartable(new Startable() {
             @Override
             public void start(FishState model) {
-                state.scheduleEveryXDay(new Steppable() {
-                    @Override
-                    public void step(SimState simState) {
-                        Port port = state.getPorts().iterator().next();
-                        if (port.getGasPricePerLiter() > 0.1)
-                            port.setGasPricePerLiter(0);
-                        else
-                            port.setGasPricePerLiter(8d);
-
-                    }
-                }, StepOrder.POLICY_UPDATE, 90);
+                state.scheduleEveryXDay(
+                        new Steppable() {
+                            @Override
+                            public void step(SimState simState) {
+                                Port port = state.getPorts().iterator().next();
+                                if (port.getGasPricePerLiter() > 0.1) port.setGasPricePerLiter(0);
+                                else port.setGasPricePerLiter(8d);
+                            }
+                        },
+                        StepOrder.POLICY_UPDATE,
+                        90);
             }
 
             @Override
-            public void turnOff() {
-
-            }
+            public void turnOff() {}
         });
         state.attachAdditionalGatherers();
 
         FishGUI vid = new FishGUI(state);
         Console c = new Console(vid);
         c.setVisible(true);
-
     }
 }

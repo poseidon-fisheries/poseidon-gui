@@ -19,23 +19,20 @@
 package uk.ac.ox.poseidon.gui;
 
 import ec.util.MersenneTwisterFast;
-import sim.util.gui.ColorMap;
-import uk.ac.ox.oxfish.utility.FishStateUtilities;
-
 import java.awt.*;
 import java.util.HashMap;
 import java.util.function.Function;
+import sim.util.gui.ColorMap;
+import uk.ac.ox.oxfish.utility.FishStateUtilities;
 
 /**
  * Created by carrknight on 11/30/16.
  */
 public class DiscreteColorMap implements ColorMap {
 
-
     private final MersenneTwisterFast randomizer;
 
     HashMap<Integer, Color> colorsPreAssigned = new HashMap<>();
-
 
     public DiscreteColorMap(MersenneTwisterFast randomizer) {
         this.randomizer = randomizer;
@@ -47,12 +44,7 @@ public class DiscreteColorMap implements ColorMap {
         return colorsPreAssigned.computeIfAbsent(discretized, new Function<Integer, Color>() {
             @Override
             public Color apply(Integer integer) {
-                return new Color(
-                    randomizer.nextInt(256),
-                    randomizer.nextInt(256),
-                    randomizer.nextInt(256),
-                    255
-                );
+                return new Color(randomizer.nextInt(256), randomizer.nextInt(256), randomizer.nextInt(256), 255);
             }
         });
     }

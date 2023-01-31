@@ -19,17 +19,16 @@
 package uk.ac.ox.poseidon.gui;
 
 import com.google.common.base.Preconditions;
-import uk.ac.ox.oxfish.model.scenario.Scenario;
-import uk.ac.ox.oxfish.model.scenario.Scenarios;
-import uk.ac.ox.poseidon.gui.widget.ScenarioJComponent;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.swing.*;
+import uk.ac.ox.oxfish.model.scenario.Scenario;
+import uk.ac.ox.oxfish.model.scenario.Scenarios;
+import uk.ac.ox.poseidon.gui.widget.ScenarioJComponent;
 
 /**
  * A panel to select scenarios and modify them before the simulation starts
@@ -45,32 +44,26 @@ public class ScenarioSelector extends JPanel implements ActionListener {
     private final Map<String, ScenarioJComponent> widgets = new HashMap<>();
     private Scenario scenario;
 
-
     public ScenarioSelector() {
         radioButtons = new HashMap<>();
-        //border layout
+        // border layout
         this.setLayout(new BorderLayout());
 
-        //initially empty settings panel
+        // initially empty settings panel
         this.settings = new JPanel(new CardLayout());
         this.add(new JScrollPane(settings), BorderLayout.CENTER);
 
-
-        //create radio buttons on the left
+        // create radio buttons on the left
         scenariosPanel = new JPanel(new GridLayout(0, 1));
         this.add(scenariosPanel, BorderLayout.WEST);
-        //populate radio button group
+        // populate radio button group
         radioButtonGroup = new ButtonGroup();
         for (Map.Entry<String, Supplier<Scenario>> scenarioItem : Scenarios.SCENARIOS.entrySet()) {
             addScenarioOption(scenarioItem.getKey(), scenarioItem.getValue().get());
-
-
         }
         radioButtonGroup.clearSelection();
-        //now force the prototype
+        // now force the prototype
         select("Abstract");
-
-
     }
 
     public void select(final String scenarioName) {
@@ -87,7 +80,6 @@ public class ScenarioSelector extends JPanel implements ActionListener {
         widgets.put(name, widget);
         settings.add(name, widget.getJComponent());
 
-
         scenariosPanel.add(scenarioButton);
         radioButtons.put(name, scenarioButton);
         radioButtonGroup.add(scenarioButton);
@@ -97,13 +89,11 @@ public class ScenarioSelector extends JPanel implements ActionListener {
         scenariosPanel.repaint();
     }
 
-
     public void removeScenarioOption(String name) {
         Preconditions.checkArgument(widgets.containsKey(name));
         Preconditions.checkArgument(radioButtons.containsKey(name));
         Preconditions.checkArgument(scenarioMap.containsKey(name));
         scenarioMap.put(name, scenario);
-
 
         ScenarioJComponent toRemove = widgets.get(name);
         settings.remove(toRemove.getJComponent());
@@ -112,7 +102,6 @@ public class ScenarioSelector extends JPanel implements ActionListener {
         scenariosPanel.remove(button);
         radioButtonGroup.remove(button);
         button.removeActionListener(this);
-
     }
 
     /**
@@ -121,7 +110,7 @@ public class ScenarioSelector extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        //new scenario!
+        // new scenario!
         scenario = scenarioMap.get(e.getActionCommand());
 
         CardLayout cl = (CardLayout) (settings.getLayout());
@@ -129,7 +118,6 @@ public class ScenarioSelector extends JPanel implements ActionListener {
 
         settings.repaint();
         this.repaint();
-
     }
 
     public boolean hasScenario(String name) {

@@ -19,21 +19,19 @@
 package uk.ac.ox.poseidon.gui.widget;
 
 import com.esotericsoftware.minlog.Log;
+import java.util.Map;
+import javax.swing.*;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.metawidget.swing.SwingMetawidget;
 import org.metawidget.util.WidgetBuilderUtils;
 import org.metawidget.widgetprocessor.iface.WidgetProcessor;
 import uk.ac.ox.oxfish.utility.FishStateUtilities;
 
-import javax.swing.*;
-import java.util.Map;
-
 /**
  * Creates a string to show the content of arrays (and arrays of arrays of arrays of ...)
  * Created by carrknight on 4/5/16.
  */
 public class ArrayWidgetProcessor implements WidgetProcessor<JComponent, SwingMetawidget> {
-
 
     /**
      * Process the given widget. Called after a widget has been built by the
@@ -52,20 +50,17 @@ public class ArrayWidgetProcessor implements WidgetProcessor<JComponent, SwingMe
      */
     @Override
     public JComponent processWidget(
-        JComponent widget, String elementName, Map<String, String> attributes, SwingMetawidget metawidget
-    ) {
+            JComponent widget, String elementName, Map<String, String> attributes, SwingMetawidget metawidget) {
         Class<?> clazz = WidgetBuilderUtils.getActualClassOrType(attributes, String.class);
         if (clazz != null) {
             try {
                 if (clazz.isArray()) {
 
-                    //nested address? no problem
-                    String address = StrategyFactoryWidgetProcessor.addressFromPath(
-                        attributes, metawidget);
-                    //current class
+                    // nested address? no problem
+                    String address = StrategyFactoryWidgetProcessor.addressFromPath(attributes, metawidget);
+                    // current class
 
-                    String toDisplay =
-                        FishStateUtilities.deepToStringArray(
+                    String toDisplay = FishStateUtilities.deepToStringArray(
                             PropertyUtils.getProperty(metawidget.getToInspect(), address), " , ", "|");
 
                     JLabel label = new JLabel(toDisplay);
@@ -74,7 +69,6 @@ public class ArrayWidgetProcessor implements WidgetProcessor<JComponent, SwingMe
                 }
             } catch (Exception e) {
                 Log.trace("cannot display " + attributes.get("name"));
-
             }
         }
         return widget;
@@ -83,5 +77,5 @@ public class ArrayWidgetProcessor implements WidgetProcessor<JComponent, SwingMe
 
 /*
 
-        return null;
- */
+       return null;
+*/

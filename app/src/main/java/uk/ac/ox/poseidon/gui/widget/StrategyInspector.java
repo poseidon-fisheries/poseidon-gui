@@ -18,14 +18,13 @@
 
 package uk.ac.ox.poseidon.gui.widget;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.metawidget.inspector.impl.BaseObjectInspector;
 import org.metawidget.inspector.impl.propertystyle.Property;
 import org.metawidget.util.CollectionUtils;
 import uk.ac.ox.oxfish.utility.AlgorithmFactories;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * Marks down all the properties who are strategies. Useful for postprocessing
@@ -49,25 +48,22 @@ public class StrategyInspector extends BaseObjectInspector {
     @Override
     protected Map<String, String> inspectProperty(Property property) throws Exception {
 
-
         Map<String, String> attributes = CollectionUtils.newHashMap();
 
         if (property.isWritable()) {
             try {
-                //get property class
+                // get property class
                 final Class<?> propertyClass = Class.forName(property.getType());
-                //strategy classes
+                // strategy classes
                 final Set<Class> strategyClasses = AlgorithmFactories.CONSTRUCTOR_MAP.keySet();
-                final Optional<Class> superclass = strategyClasses.stream().filter(
-                    aclass -> aclass.isAssignableFrom(propertyClass)).findFirst();
+                final Optional<Class> superclass = strategyClasses.stream()
+                        .filter(aclass -> aclass.isAssignableFrom(propertyClass))
+                        .findFirst();
                 superclass.ifPresent(aClass -> attributes.put(KEY, aClass.getName()));
             } catch (ClassNotFoundException e) {
-                //this can happen (think primitives)
+                // this can happen (think primitives)
             }
-
         }
         return attributes;
-
-
     }
 }

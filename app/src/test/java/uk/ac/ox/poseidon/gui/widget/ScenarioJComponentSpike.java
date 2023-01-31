@@ -18,9 +18,8 @@
 
 package uk.ac.ox.poseidon.gui.widget;
 
-import uk.ac.ox.oxfish.model.scenario.PrototypeScenario;
-
 import javax.swing.*;
+import uk.ac.ox.oxfish.model.scenario.PrototypeScenario;
 
 /**
  * I might decide to make a full GUI test at some point, till then this is just a personal way
@@ -39,7 +38,5 @@ public class ScenarioJComponentSpike {
         frame.getContentPane().add(component.getJComponent());
         frame.pack();
         frame.setVisible(true);
-
     }
-
 }

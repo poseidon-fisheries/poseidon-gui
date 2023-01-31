@@ -18,11 +18,10 @@
 
 package uk.ac.ox.poseidon.gui;
 
-import uk.ac.ox.oxfish.model.BatchRunner;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import uk.ac.ox.oxfish.model.BatchRunner;
 
 public class BatchRunnerFactory {
     private Path yamlFile = Paths.get(".", "inputs", "first_paper", "fronts.yaml");
@@ -35,9 +34,17 @@ public class BatchRunnerFactory {
     private Integer heatmapGathererStartYear = -1;
 
     {
-        String path = FishGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        String path = FishGUI.class
+                .getProtectionDomain()
+                .getCodeSource()
+                .getLocation()
+                .getPath();
         if (path.endsWith(".jar")) {
-            yamlFile = Paths.get(path).getParent().resolve("inputs").resolve("first_paper").resolve("fronts.yaml");
+            yamlFile = Paths.get(path)
+                    .getParent()
+                    .resolve("inputs")
+                    .resolve("first_paper")
+                    .resolve("fronts.yaml");
             outputFolder = Paths.get(path).getParent().resolve("outputs").resolve("batch");
         }
     }
@@ -49,18 +56,16 @@ public class BatchRunnerFactory {
      */
     public BatchRunner build() {
         return new BatchRunner(
-            yamlFile,
-            yearsToRun,
-            columnsToPrint != null && columnsToPrint.contains(",") ?
-                Arrays.asList(columnsToPrint.split(",")) :
-                null,
-            outputFolder,
-            policyFile,
-            randomSeed,
-            heatmapGathererStartYear
-        );
+                yamlFile,
+                yearsToRun,
+                columnsToPrint != null && columnsToPrint.contains(",")
+                        ? Arrays.asList(columnsToPrint.split(","))
+                        : null,
+                outputFolder,
+                policyFile,
+                randomSeed,
+                heatmapGathererStartYear);
     }
-
 
     /**
      * Getter for property 'yearsToRun'.
@@ -79,7 +84,6 @@ public class BatchRunnerFactory {
     public void setYearsToRun(int yearsToRun) {
         this.yearsToRun = yearsToRun;
     }
-
 
     /**
      * Getter for property 'yamlFile'.
@@ -188,7 +192,6 @@ public class BatchRunnerFactory {
     public void setNumberOfRuns(int numberOfRuns) {
         this.numberOfRuns = numberOfRuns;
     }
-
 
     /**
      * Getter for property 'heatmapGathererStartYear'.

@@ -18,14 +18,13 @@
 
 package uk.ac.ox.poseidon.gui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.*;
 import uk.ac.ox.oxfish.fisher.Fisher;
 import uk.ac.ox.oxfish.model.FishState;
 import uk.ac.ox.poseidon.gui.controls.PolicyButton;
 import uk.ac.ox.poseidon.gui.drawing.MPADrawer;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * A tab to change regulations on the fly
@@ -49,30 +48,28 @@ public class RegulationTab extends JPanel {
         jButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //synchronize with the model
+                // synchronize with the model
                 synchronized (gui.state.schedule) {
-                    //go through all agents
+                    // go through all agents
                     final FishState state = (FishState) gui.state;
                     for (Fisher fisher : state.getFishers())
-                        //set new regulations!
+                        // set new regulations!
                         fisher.setRegulation(regulations.getGlobalRegulations().apply(state));
                 }
-                //done
+                // done
             }
         });
 
         this.add(jButton);
 
         this.add(new JSeparator());
-        //second button is the enabled kind
+        // second button is the enabled kind
         JToggleButton drawerButton = new JToggleButton("Draw new MPAs");
         drawerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (drawerButton.isSelected())
-                    drawer.attach();
-                else
-                    drawer.detach();
+                if (drawerButton.isSelected()) drawer.attach();
+                else drawer.detach();
             }
         });
         this.add(drawerButton);
@@ -80,7 +77,5 @@ public class RegulationTab extends JPanel {
             this.add(new JSeparator());
             this.add(policy.buildJComponent(gui));
         }
-
     }
-
 }

@@ -19,10 +19,9 @@
 package uk.ac.ox.poseidon.gui;
 
 import com.google.common.base.Preconditions;
+import java.awt.*;
 import sim.util.gui.ColorMap;
 import sim.util.gui.SimpleColorMap;
-
-import java.awt.*;
 
 /**
  * This is actually modified from the original TriColorMap made by the very good Joey Harrison
@@ -49,16 +48,12 @@ public class TriColorMap implements ColorMap {
     private final SimpleColorMap lowerHalf;
     private SimpleColorMap upperHalf;
 
-
     public TriColorMap(double min, double mid, double max, Color minColor, Color midColor, Color maxColor) {
         this(min, mid, max, minColor, midColor, midColor, maxColor);
-
     }
 
     public TriColorMap(
-        double min, double mid, double max, Color minColor, Color midColorLow,
-        Color midColorHigh, Color maxColor
-    ) {
+            double min, double mid, double max, Color minColor, Color midColorLow, Color midColorHigh, Color maxColor) {
         this.mid = mid;
         lowerHalf = new SimpleColorMap(min, mid, minColor, midColorLow);
         upperHalf = new SimpleColorMap(mid, max, midColorHigh, maxColor);
@@ -71,46 +66,34 @@ public class TriColorMap implements ColorMap {
     @Override
     public Color getColor(double level) {
 
-        if (Double.isNaN(level))
-            return Color.GRAY;
+        if (Double.isNaN(level)) return Color.GRAY;
 
-        if (level < mid)
-            return lowerHalf.getColor(level);
-        else
-            return upperHalf.getColor(level);
+        if (level < mid) return lowerHalf.getColor(level);
+        else return upperHalf.getColor(level);
     }
 
     @Override
     public int getRGB(double level) {
 
-        if (Double.isNaN(level))
-            return Color.GRAY.getRGB();
+        if (Double.isNaN(level)) return Color.GRAY.getRGB();
 
-        if (level < mid)
-            return lowerHalf.getRGB(level);
-        else
-            return upperHalf.getRGB(level);
+        if (level < mid) return lowerHalf.getRGB(level);
+        else return upperHalf.getRGB(level);
     }
 
     @Override
     public int getAlpha(double level) {
 
-        if (Double.isNaN(level))
-            return Color.GRAY.getAlpha();
+        if (Double.isNaN(level)) return Color.GRAY.getAlpha();
 
-
-        if (level < mid)
-            return lowerHalf.getAlpha(level);
-        else
-            return upperHalf.getAlpha(level);
+        if (level < mid) return lowerHalf.getAlpha(level);
+        else return upperHalf.getAlpha(level);
     }
 
     @Override
     public boolean validLevel(double level) {
-        if (level < mid)
-            return lowerHalf.validLevel(level);
-        else
-            return upperHalf.validLevel(level);
+        if (level < mid) return lowerHalf.validLevel(level);
+        else return upperHalf.validLevel(level);
     }
 
     @Override
@@ -118,12 +101,10 @@ public class TriColorMap implements ColorMap {
         return mid;
     }
 
-
     public void resetMax(double max) {
         Preconditions.checkArgument(max > mid);
         upperHalf = new SimpleColorMap(mid, max, midColorHigh, maxColor);
     }
-
 
     public void resetMin(double min) {
         Preconditions.checkArgument(min < mid);

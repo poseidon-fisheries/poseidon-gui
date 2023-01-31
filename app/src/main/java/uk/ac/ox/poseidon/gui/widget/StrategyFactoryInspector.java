@@ -18,16 +18,15 @@
 
 package uk.ac.ox.poseidon.gui.widget;
 
-import org.metawidget.inspector.impl.BaseObjectInspector;
-import org.metawidget.inspector.impl.propertystyle.Property;
-import org.metawidget.inspector.impl.propertystyle.javabean.JavaBeanPropertyStyle.JavaBeanProperty;
-import uk.ac.ox.oxfish.utility.AlgorithmFactory;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.HashMap;
 import java.util.Map;
+import org.metawidget.inspector.impl.BaseObjectInspector;
+import org.metawidget.inspector.impl.propertystyle.Property;
+import org.metawidget.inspector.impl.propertystyle.javabean.JavaBeanPropertyStyle.JavaBeanProperty;
+import uk.ac.ox.oxfish.utility.AlgorithmFactory;
 
 /**
  * The "MetaInspector" (in the metawidget sense, not the mason sense) that looks for
@@ -38,14 +37,11 @@ public class StrategyFactoryInspector extends BaseObjectInspector {
 
     private static boolean isAlgorithmFactory(final Type type) {
         final Type rawType = rawType(type);
-        return rawType instanceof Class<?>
-            && AlgorithmFactory.class.isAssignableFrom((Class<?>) rawType);
+        return rawType instanceof Class<?> && AlgorithmFactory.class.isAssignableFrom((Class<?>) rawType);
     }
 
     private static Type rawType(final Type type) {
-        return type instanceof ParameterizedType
-            ? ((ParameterizedType) type).getRawType()
-            : type;
+        return type instanceof ParameterizedType ? ((ParameterizedType) type).getRawType() : type;
     }
 
     /**
@@ -63,9 +59,7 @@ public class StrategyFactoryInspector extends BaseObjectInspector {
     protected Map<String, String> inspectProperty(final Property property) {
         final Map<String, String> attributes = new HashMap<>();
         if (property.isWritable()) {
-            Type type = ((JavaBeanProperty) property)
-                .getWriteMethod()
-                .getGenericParameterTypes()[0];
+            Type type = ((JavaBeanProperty) property).getWriteMethod().getGenericParameterTypes()[0];
             if (isAlgorithmFactory(type)) {
                 if (type instanceof ParameterizedType && type.getTypeName().contains("AlgorithmFactory")) {
                     type = ((ParameterizedType) type).getActualTypeArguments()[0];
@@ -79,5 +73,4 @@ public class StrategyFactoryInspector extends BaseObjectInspector {
         }
         return attributes;
     }
-
 }

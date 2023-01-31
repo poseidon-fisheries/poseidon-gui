@@ -18,6 +18,17 @@
 
 package uk.ac.ox.poseidon.gui;
 
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.Map;
+import javax.swing.*;
 import sim.display.Console;
 import sim.display.Controller;
 import sim.display.Display2D;
@@ -33,7 +44,6 @@ import sim.portrayal.geo.GeomVectorFieldPortrayal;
 import sim.portrayal.grid.SparseGridPortrayal2D;
 import sim.portrayal.simple.*;
 import uk.ac.ox.oxfish.fisher.Fisher;
-import uk.ac.ox.oxfish.geography.ports.Port;
 import uk.ac.ox.oxfish.model.FishState;
 import uk.ac.ox.oxfish.model.scenario.FisherFactory;
 import uk.ac.ox.oxfish.utility.FishStateUtilities;
@@ -41,18 +51,6 @@ import uk.ac.ox.oxfish.utility.fxcollections.ListChangeListener;
 import uk.ac.ox.poseidon.Main;
 import uk.ac.ox.poseidon.gui.controls.PolicyButton;
 import uk.ac.ox.poseidon.gui.drawing.*;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.Map;
 
 /**
  * The GUI of FishState
@@ -66,8 +64,12 @@ public class FishGUI extends GUIState {
     static {
         URI path = null;
         try {
-            path = FishGUI.class.getProtectionDomain().getCodeSource().getLocation().toURI();
-/*
+            path = FishGUI.class
+                    .getProtectionDomain()
+                    .getCodeSource()
+                    .getLocation()
+                    .toURI();
+            /*
             JOptionPane.showMessageDialog(null,
                     path.toString());
             JOptionPane.showMessageDialog(null,
@@ -78,8 +80,8 @@ public class FishGUI extends GUIState {
             if (Paths.get(path).endsWith(".jar"))
                 IMAGES_PATH = Paths.get(path).getParent().resolve("inputs").resolve("images");
 
-//            JOptionPane.showMessageDialog(null,
-//                    IMAGES_PATH.toAbsolutePath().toString());
+            //            JOptionPane.showMessageDialog(null,
+            //                    IMAGES_PATH.toAbsolutePath().toString());
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -90,7 +92,8 @@ public class FishGUI extends GUIState {
     private final SparseGridPortrayal2D ports = new SparseGridPortrayal2D();
     private final SparseGridPortrayal2D boats = new SparseGridPortrayal2D();
     private final SparseGridPortrayal2D trails = new SparseGridPortrayal2D();
-    private final ImageIcon portIcon;// = new ImageIcon(FishGUI.class.getClassLoader().getResource("images/anchor.png"));
+    private final ImageIcon
+            portIcon; // = new ImageIcon(FishGUI.class.getClassLoader().getResource("images/anchor.png"));
     private final LinkedList<PolicyButton> policyButtons = new LinkedList<>();
     private Display2D display2D;
     private JFrame displayFrame;
@@ -109,7 +112,6 @@ public class FishGUI extends GUIState {
     public FishGUI() {
 
         this(new FishState(System.currentTimeMillis()));
-
     }
 
     /**
@@ -130,17 +132,20 @@ public class FishGUI extends GUIState {
             e.printStackTrace(new PrintWriter(sw));
             String exceptionAsString = sw.toString();
             JOptionPane.showMessageDialog(
-                null,
-
-                IMAGES_PATH.toAbsolutePath() + "\n" +
-                    FishGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath() + "\n" +
-                    e + "\n" + exceptionAsString
-            );
+                    null,
+                    IMAGES_PATH.toAbsolutePath() + "\n"
+                            + FishGUI.class
+                                    .getProtectionDomain()
+                                    .getCodeSource()
+                                    .getLocation()
+                                    .getPath()
+                            + "\n" + e
+                            + "\n" + exceptionAsString);
             throw new RuntimeException(e);
         }
     }
 
-    //one of the most annoying parts of mason: overriding static methods
+    // one of the most annoying parts of mason: overriding static methods
     public static Object getInfo() {
         return "POSEIDON is a generic, simple agent-based model of fisheries. You can read more about it at https://link.springer.com/article/10.1007/s11625-018-0579-9";
     }
@@ -157,60 +162,49 @@ public class FishGUI extends GUIState {
     @Override
     public void init(Controller controller) {
 
-
         super.init(controller);
         ((Console) controller).setSize(800, 600);
         final Box timeBox = (Box) ((Console) controller).getContentPane().getComponents()[0];
-        //turn stop button into a proper dispose and restart
+        // turn stop button into a proper dispose and restart
         JButton stopButton = (JButton) timeBox.getComponent(2);
 
-        //remove previous functionalities
+        // remove previous functionalities
         for (ActionListener act : stopButton.getActionListeners()) {
             stopButton.removeActionListener(act);
         }
-        //the stop button will now close the gui and start a new scenario selector
-        stopButton.addActionListener(
-            new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
+        // the stop button will now close the gui and start a new scenario selector
+        stopButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
 
+                // in their infinite wisdom, MASON programmers have hard-coded a "system.exit" call
+                // and now we have to do acrobatics just to keep this thing from turning off
+                Console console = (Console) controller;
 
-                    //in their infinite wisdom, MASON programmers have hard-coded a "system.exit" call
-                    //and now we have to do acrobatics just to keep this thing from turning off
-                    Console console = (Console) controller;
+                // we should probably pause, just to be safe
+                console.setShouldRepeat(false);
 
-                    //we should probably pause, just to be safe
-                    console.setShouldRepeat(false);
-
-
-                    for (Object allFrame : console.getAllFrames()) {
-                        ((JFrame) allFrame).dispose();
-
-                    }
-                    console.dispose();
-                    FishGUI.this.quit();
-                    FishGUI.this.state.finish();
-                    FishGUI.this.state = null;
-                    System.gc();
-                    try {
-                        Main.main(null);
-                    } catch (IOException e1) {
-                        throw new RuntimeException(e1);
-                    }
+                for (Object allFrame : console.getAllFrames()) {
+                    ((JFrame) allFrame).dispose();
+                }
+                console.dispose();
+                FishGUI.this.quit();
+                FishGUI.this.state.finish();
+                FishGUI.this.state = null;
+                System.gc();
+                try {
+                    Main.main(null);
+                } catch (IOException e1) {
+                    throw new RuntimeException(e1);
                 }
             }
-        );
-
-
+        });
     }
 
     @Override
-    public boolean readNewStateFromCheckpoint(
-        File file
-    ) throws Exception {
+    public boolean readNewStateFromCheckpoint(File file) throws Exception {
         FishState currentState = FishStateUtilities.readModelFromFile(file);
-        if (currentState == null)
-            return false;
+        if (currentState == null) return false;
         else {
             this.load(currentState);
             return true;
@@ -226,21 +220,15 @@ public class FishGUI extends GUIState {
         try {
             super.start();
 
-
             initialize();
 
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
             String exceptionAsString = sw.toString();
-            JOptionPane.showMessageDialog(
-                null,
-                e + "\n" + exceptionAsString
-            );
+            JOptionPane.showMessageDialog(null, e + "\n" + exceptionAsString);
             throw e;
         }
-
-
     }
 
     @Override
@@ -250,20 +238,17 @@ public class FishGUI extends GUIState {
     }
 
     private void initialize() {
-        final FishGUI self = this; //for anon classes
+        final FishGUI self = this; // for anon classes
         FishState state = (FishState) this.state;
 
-
-        //the console label is a pain in the ass so we need to really use a wrecking ball to modify the way
-        //the label is used
+        // the console label is a pain in the ass so we need to really use a wrecking ball to modify the way
+        // the label is used
         final Box timeBox = (Box) ((Console) controller).getContentPane().getComponents()[0];
-        while (timeBox.getComponents().length > 3)
-            timeBox.remove(3);
+        while (timeBox.getComponents().length > 3) timeBox.remove(3);
 
-        //add save button
+        // add save button
         SaveButton saveButton = new SaveButton(this, timeBox.getComponent(0).getSize());
         timeBox.add(saveButton);
-
 
         final JLabel timeLabel = new JLabel("Not Started Yet");
         (timeBox).add(timeLabel);
@@ -271,38 +256,33 @@ public class FishGUI extends GUIState {
             @Override
             public void step(SimState simState) {
                 SwingUtilities.invokeLater(() -> timeLabel.setText(state.timeString()));
-
             }
         });
 
         display2D = setupPortrayal(mainPortrayal);
 
-
-        //MPAs portrayal
+        // MPAs portrayal
         mpaPortrayal.setField(state.getMpaVectorField());
         mpaPortrayal.setPortrayalForAll(new GeomPortrayal(Color.BLUE, true));
 
-
-        //fads
+        // fads
         if (state.getFadMap() != null) {
             fadMapPortrayal = new ContinuousPortrayal2D();
             fadMapPortrayal.setField(state.getFadMap().getField());
-            fadMapPortrayal.setPortrayalForAll(
-                new OvalPortrayal2D(Color.yellow, 0.5));
+            fadMapPortrayal.setPortrayalForAll(new OvalPortrayal2D(Color.yellow, 0.5));
         }
 
-        //boats
+        // boats
         trails.setField(state.getFisherGrid());
         trails.setPortrayalForAll(null);
         boats.setField(state.getFisherGrid());
         boats.setPortrayalForRemainder(null);
 
-
         for (Fisher o : state.getFishers()) {
             assignPortrayalToFisher(boatPortrayalFactory.build(o), o);
         }
-        //start listening to the model for changes, but keep track of this because you need to stop listening
-        //in the case of savings
+        // start listening to the model for changes, but keep track of this because you need to stop listening
+        // in the case of savings
         fisherListListener = new ListChangeListener<Fisher>() {
             @Override
             public void onChanged(Change<? extends Fisher> c) {
@@ -314,62 +294,50 @@ public class FishGUI extends GUIState {
                     if (c.wasAdded())
                         for (Fisher fisher : c.getAddedSubList())
                             assignPortrayalToFisher(boatPortrayalFactory.build(fisher), fisher);
-
                 }
             }
         };
         state.getFishers().addListener(fisherListListener);
 
-
-        //ports
+        // ports
         ports.setField(state.getPortGrid());
         ports.setPortrayalForAll(new ImagePortrayal2D(portIcon) {
             @Override
             public Inspector getInspector(LocationWrapper wrapper, GUIState state) {
-                return wrapper == null ? null :
-                    new MetaInspector(wrapper.getObject(), self);
+                return wrapper == null ? null : new MetaInspector(wrapper.getObject(), self);
             }
         });
 
-
-        //build aggregate data
+        // build aggregate data
         ScrollPane pane = new ScrollPane();
         pane.add(new MetaInspector(new FishStateProxy(state), self));
 
         ((Console) controller).getTabPane().addTab("Aggregate Data", pane);
 
-
-        //if possible create buttons to add fishers
+        // if possible create buttons to add fishers
         if (state.canCreateMoreFishers()) {
             for (Map.Entry<String, FisherFactory> factory : state.getFisherFactories()) {
                 policyButtons.add(gui -> {
                     JButton button = new JButton("Add Fisher - " + factory.getKey());
                     button.addActionListener(e -> {
-                        scheduleImmediatelyBefore(
-                            state1 ->
-                                state.createFisher(factory.getKey())
-                        );
-
+                        scheduleImmediatelyBefore(state1 -> state.createFisher(factory.getKey()));
                     });
                     return button;
                 });
             }
-
         }
 
-        //create a button to kill fishers, grey it out when there are no more fishers
+        // create a button to kill fishers, grey it out when there are no more fishers
         policyButtons.add(new PolicyButton() {
             @Override
             public JComponent buildJComponent(FishGUI gui) {
                 JButton button = new JButton("Remove Random Fisher");
-                if (state.getFishers().size() == 0)
-                    button.setEnabled(false);
+                if (state.getFishers().size() == 0) button.setEnabled(false);
                 button.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        //kill a fisher, but do so in the model thread
-                        scheduleImmediatelyBefore(
-                            state1 -> state.killRandomFisher());
+                        // kill a fisher, but do so in the model thread
+                        scheduleImmediatelyBefore(state1 -> state.killRandomFisher());
                     }
                 });
                 enableDisableFisherListListener = new ListChangeListener<Fisher>() {
@@ -381,7 +349,6 @@ public class FishGUI extends GUIState {
                                 button.setEnabled(state.getFishers().size() != 0);
                             }
                         });
-
                     }
                 };
                 state.getFishers().addListener(enableDisableFisherListListener);
@@ -406,12 +373,9 @@ public class FishGUI extends GUIState {
                         try {
                             if (chooser.showOpenDialog(gui.displayFrame) == JFileChooser.APPROVE_OPTION) {
 
-                                System.out.println("getCurrentDirectory(): "
-                                    + chooser.getSelectedFile());
+                                System.out.println("getCurrentDirectory(): " + chooser.getSelectedFile());
                                 FishStateUtilities.writeAdditionalOutputsToFolder(
-                                    chooser.getSelectedFile().toPath(),
-                                    (FishState) gui.state
-                                );
+                                        chooser.getSelectedFile().toPath(), (FishState) gui.state);
                             } else {
                                 System.out.println("No Selection ");
                             }
@@ -436,7 +400,6 @@ public class FishGUI extends GUIState {
                         pane.removeAll();
                         pane.add(new MetaInspector(new FishStateProxy(state), self));
                         ((Console) controller).getTabPane().addTab("Aggregate Data", pane);
-
                     }
                 });
 
@@ -444,46 +407,33 @@ public class FishGUI extends GUIState {
             }
         });
 
-
-        //mpa drawer
+        // mpa drawer
         transformer = new CoordinateTransformer(display2D, state.getMap());
 
-        MPADrawer drawer = new MPADrawer(display2D, transformer, state.getMap(),
-            mainPortrayal, this
-        );
-
+        MPADrawer drawer = new MPADrawer(display2D, transformer, state.getMap(), mainPortrayal, this);
 
         ((Console) controller).getTabPane().add("Policies", new RegulationTab(this, drawer));
-        //drawer.attach();
-
+        // drawer.attach();
 
         heatMap = new TrawlingHeatMap(state.getDailyTrawlsMap(), state, 30);
         scheduleRepeatingImmediatelyAfter(heatMap);
 
-        displayFrame = setupDisplay2D(mainPortrayal, display2D,
-            "Bathymetry", true
-        );
-        //attach it the portrayal
+        displayFrame = setupDisplay2D(mainPortrayal, display2D, "Bathymetry", true);
+        // attach it the portrayal
         display2D.attach(mainPortrayal, "Bathymetry");
-        //display2D.attach(mpaPortrayal,"MPAs");
+        // display2D.attach(mpaPortrayal,"MPAs");
         display2D.attach(heatMap.getHeatMapPortrayal(), "Fishing Hotspots");
-        if (fadMapPortrayal != null)
-            display2D.attach(fadMapPortrayal, "Fads");
+        if (fadMapPortrayal != null) display2D.attach(fadMapPortrayal, "Fads");
         display2D.attach(trails, "Boat Trails");
         display2D.attach(boats, "Boats");
         display2D.attach(ports, "Ports");
 
         displayFrame.setVisible(true);
-
     }
 
     private void assignPortrayalToFisher(SimplePortrayal2D boatPortrayal, Fisher o) {
-        TrailedPortrayal2D trailed = new TrailedPortrayal2D
-            (this,
-                boatPortrayal,
-                trails,
-                50, Color.BLUE, new Color(0, 0, 255, 0)
-            );
+        TrailedPortrayal2D trailed =
+                new TrailedPortrayal2D(this, boatPortrayal, trails, 50, Color.BLUE, new Color(0, 0, 255, 0));
         trailed.setOnlyGrowTrailWhenSelected(true);
         trailed.setOnlyShowTrailWhenSelected(false);
         CircledPortrayal2D circled = new CircledPortrayal2D(trailed);
@@ -496,19 +446,15 @@ public class FishGUI extends GUIState {
      * stop listening to the model in order to avoid serialization issues
      */
     public void preCheckPoint() {
-        if (fisherListListener != null)
-            ((FishState) state).getFishers().removeListener(fisherListListener);
+        if (fisherListListener != null) ((FishState) state).getFishers().removeListener(fisherListListener);
         if (enableDisableFisherListListener != null)
             ((FishState) state).getFishers().removeListener(enableDisableFisherListListener);
-
     }
 
     public void postCheckPoint() {
-        if (fisherListListener != null)
-            ((FishState) state).getFishers().addListener(fisherListListener);
+        if (fisherListListener != null) ((FishState) state).getFishers().addListener(fisherListListener);
         if (enableDisableFisherListListener != null)
             ((FishState) state).getFishers().addListener(enableDisableFisherListListener);
-
     }
 
     public LinkedList<PolicyButton> getPolicyButtons() {
@@ -524,7 +470,6 @@ public class FishGUI extends GUIState {
         return mainPortrayal;
     }
 
-
     public Display2D setupPortrayal(final ColorfulGrid portrayal) {
         FishState model = (FishState) state;
         portrayal.initializeGrid(model.getBiology(), model.getMap().getAllSeaTilesExcludingLandAsList());
@@ -532,12 +477,12 @@ public class FishGUI extends GUIState {
         portrayal.setField(model.getRasterBathymetry().getGrid());
         portrayal.setMap(new TriColorMap(-6000, 0, 6000, Color.BLUE, Color.CYAN, Color.GREEN, new Color(0, 100, 0)));
 
-        //now deal with display2d
-        //change width and height to keep correct geographical ratio
+        // now deal with display2d
+        // change width and height to keep correct geographical ratio
         double width;
         double height;
-        double heightToWidthRatio = ((double) model.getRasterBathymetry().getGridHeight()) / model.getRasterBathymetry()
-            .getGridWidth();
+        double heightToWidthRatio = ((double) model.getRasterBathymetry().getGridHeight())
+                / model.getRasterBathymetry().getGridWidth();
         if (heightToWidthRatio >= 1) {
             width = MIN_DIMENSION;
             height = MIN_DIMENSION * heightToWidthRatio;
@@ -549,18 +494,15 @@ public class FishGUI extends GUIState {
     }
 
     public JFrame setupDisplay2D(
-        final ColorfulGrid portrayal,
-        final Display2D display, final String title,
-        boolean addColorSwitcher
-    ) {
+            final ColorfulGrid portrayal, final Display2D display, final String title, boolean addColorSwitcher) {
         FishState model = (FishState) state;
         if (addColorSwitcher)
-            ((JComponent) display.getComponent(0)).add(
-                new ColorfulGridSwitcher(portrayal, model.getBiology(), display));
+            ((JComponent) display.getComponent(0))
+                    .add(new ColorfulGridSwitcher(portrayal, model.getBiology(), display));
         display.reset();
         display.setBackdrop(Color.WHITE);
         display.repaint();
-        //attach it the portrayal
+        // attach it the portrayal
         display.attach(portrayal, "Bathymetry");
 
         displayFrame = display.createFrame();
@@ -570,11 +512,9 @@ public class FishGUI extends GUIState {
         return displayFrame;
     }
 
-
     public void forceRepaint() {
         controller.refresh();
         displayFrame.revalidate();
         displayFrame.repaint();
     }
-
 }

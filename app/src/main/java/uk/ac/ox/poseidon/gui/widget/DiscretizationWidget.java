@@ -18,23 +18,20 @@
 
 package uk.ac.ox.poseidon.gui.widget;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import javax.swing.*;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.metawidget.swing.SwingMetawidget;
 import org.metawidget.util.WidgetBuilderUtils;
 import org.metawidget.widgetbuilder.iface.WidgetBuilder;
-import uk.ac.ox.oxfish.geography.SeaTile;
 import uk.ac.ox.oxfish.geography.discretization.MapDiscretization;
 import uk.ac.ox.oxfish.model.FishState;
 import uk.ac.ox.poseidon.gui.DiscreteColorMap;
 import uk.ac.ox.poseidon.gui.FishGUI;
 import uk.ac.ox.poseidon.gui.drawing.ColorEncoding;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Similar to GeographicalRegressionWidget except it draws the discretization rather than
@@ -42,7 +39,6 @@ import java.util.function.Function;
  * Created by carrknight on 11/30/16.
  */
 public class DiscretizationWidget implements WidgetBuilder<JComponent, SwingMetawidget> {
-
 
     private final FishGUI gui;
 
@@ -54,37 +50,26 @@ public class DiscretizationWidget implements WidgetBuilder<JComponent, SwingMeta
      * tries to build a list of market subwidgets for each market available in this MarketMap object
      */
     @Override
-    public JComponent buildWidget(
-        String elementName, Map<String, String> attributes, SwingMetawidget metawidget
-    ) {
+    public JComponent buildWidget(String elementName, Map<String, String> attributes, SwingMetawidget metawidget) {
 
         final Class<?> actualClass = WidgetBuilderUtils.getActualClassOrType(attributes, String.class);
-        //if it is a primitive or not a MarketMap we have no use for it
-        if (actualClass == null || !MapDiscretization.class.isAssignableFrom(actualClass))
-            return null;
+        // if it is a primitive or not a MarketMap we have no use for it
+        if (actualClass == null || !MapDiscretization.class.isAssignableFrom(actualClass)) return null;
 
         try {
-            //nested address? no problem
-            String address = StrategyFactoryWidgetProcessor.addressFromPath(
-                attributes, metawidget);
-            MapDiscretization discretization = ((MapDiscretization)
-                PropertyUtils.getProperty(
-                    metawidget.getToInspect(),
-                    address
-                ));
-
+            // nested address? no problem
+            String address = StrategyFactoryWidgetProcessor.addressFromPath(attributes, metawidget);
+            MapDiscretization discretization =
+                    ((MapDiscretization) PropertyUtils.getProperty(metawidget.getToInspect(), address));
 
             return new DiscretizationJButton(gui, discretization);
 
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            //because of recursion this will happen
+            // because of recursion this will happen
             //   e.printStackTrace();
             return null;
         }
-
-
     }
-
 
     private static class DiscretizationJButton extends JButton implements ActionListener {
 
@@ -104,27 +89,23 @@ public class DiscretizationWidget implements WidgetBuilder<JComponent, SwingMeta
 
         /**
          * Invoked when an action occurs.
-         *
          */
         @Override
         public void actionPerformed(ActionEvent e) {
             final FishState state = (FishState) gui.state;
 
-            //remove a previous one if it exists
+            // remove a previous one if it exists
             gui.getMainPortrayal().getEncodings().remove("Discretization");
-            gui.getMainPortrayal().addEnconding(
-                "Discretization",
-                new ColorEncoding(
-                    new DiscreteColorMap(state.getRandom()),
-                    new Function<SeaTile, Double>() {
-                        @Override
-                        public Double apply(SeaTile tile) {
-                            Integer group = regression.getGroup(tile);
-                            return group == null ? -1 : (double) group;
-                        }
-                    }, true
-                )
-            );
+            gui.getMainPortrayal()
+                    .addEnconding(
+                            "Discretization",
+                            new ColorEncoding(
+                                    new DiscreteColorMap(state.getRandom()),
+                                    tile -> {
+                                        Integer group = regression.getGroup(tile);
+                                        return group == null ? -1 : (double) group;
+                                    },
+                                    true));
             gui.getMainPortrayal().setSelectedEncoding("Discretization");
             gui.forceRepaint();
         }

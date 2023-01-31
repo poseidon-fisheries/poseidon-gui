@@ -19,17 +19,16 @@
 package uk.ac.ox.poseidon.gui.widget;
 
 import com.esotericsoftware.minlog.Log;
-import org.apache.commons.beanutils.PropertyUtils;
-import org.metawidget.swing.SwingMetawidget;
-import org.metawidget.util.WidgetBuilderUtils;
-import org.metawidget.widgetbuilder.iface.WidgetBuilder;
-
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.metawidget.swing.SwingMetawidget;
+import org.metawidget.util.WidgetBuilderUtils;
+import org.metawidget.widgetbuilder.iface.WidgetBuilder;
 
 /**
  * Transform an HashMap into a JTable
@@ -55,43 +54,33 @@ public class HashMapWidgetBuilder implements WidgetBuilder<JComponent, SwingMeta
      * frameworks that cannot instatiate widgets without adding them to containers (eg. SWT)
      */
     @Override
-    public JComponent buildWidget(
-        String elementName, Map<String, String> attributes, SwingMetawidget metawidget
-    ) {
+    public JComponent buildWidget(String elementName, Map<String, String> attributes, SwingMetawidget metawidget) {
         final Class<?> actualClass = WidgetBuilderUtils.getActualClassOrType(attributes, String.class);
-        if (actualClass == null || !Map.class.isAssignableFrom(actualClass))
-            return null;
-        //nested address? no problem
-        final String address = StrategyFactoryWidgetProcessor.addressFromPath(
-            attributes, metawidget);
+        if (actualClass == null || !Map.class.isAssignableFrom(actualClass)) return null;
+        // nested address? no problem
+        final String address = StrategyFactoryWidgetProcessor.addressFromPath(attributes, metawidget);
 
         try {
             final Map inspected = ((Map) PropertyUtils.getProperty(
-                //the container: the scenario probably
-                metawidget.getToInspect(),
-                //the address of the field
-                address
-            ));
-            if (inspected == null)
-                return new JTable();
+                    // the container: the scenario probably
+                    metawidget.getToInspect(),
+                    // the address of the field
+                    address));
+            if (inspected == null) return new JTable();
 
             JTable table = new JTable(new MapToTable<>(inspected));
             table.getModel().addTableModelListener(new TableModelListener() {
                 @Override
                 public void tableChanged(TableModelEvent e) {
-                    //use the beansutils to set the new value to the field
+                    // use the beansutils to set the new value to the field
 
-                    //so i bind it again by setter
+                    // so i bind it again by setter
                     metawidget.setToInspect(inspected);
                     if (metawidget.getParent() != null) {
                         metawidget.getParent().revalidate();
-
                     }
-
-
                 }
             });
-
 
             return table;
 
@@ -101,8 +90,6 @@ public class HashMapWidgetBuilder implements WidgetBuilder<JComponent, SwingMeta
         }
 
         return null;
-
-
     }
 
     @SuppressWarnings("unchecked")
@@ -151,10 +138,8 @@ public class HashMapWidgetBuilder implements WidgetBuilder<JComponent, SwingMeta
          */
         @Override
         public String getColumnName(int columnIndex) {
-            if (columnIndex == 0)
-                return "Key";
-            else
-                return "Value";
+            if (columnIndex == 0) return "Key";
+            else return "Value";
         }
 
         /**
@@ -204,7 +189,8 @@ public class HashMapWidgetBuilder implements WidgetBuilder<JComponent, SwingMeta
             } else if (column == 1) { // column==1
                 return entry.getValue();
             } else {
-                throw new IndexOutOfBoundsException("MapTableModel provides a 2-column table, column-index " + column + " is illegal.");
+                throw new IndexOutOfBoundsException(
+                        "MapTableModel provides a 2-column table, column-index " + column + " is illegal.");
             }
         }
 
@@ -229,9 +215,5 @@ public class HashMapWidgetBuilder implements WidgetBuilder<JComponent, SwingMeta
                 delegate.put(((K) aValue), oldValue);
             }
         }
-
-
     }
-
-
 }

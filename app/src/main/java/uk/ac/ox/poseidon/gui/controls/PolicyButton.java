@@ -18,9 +18,8 @@
 
 package uk.ac.ox.poseidon.gui.controls;
 
-import uk.ac.ox.poseidon.gui.FishGUI;
-
 import javax.swing.*;
+import uk.ac.ox.poseidon.gui.FishGUI;
 
 /**
  * Any additional element to put in the fishGUI tab together with changing regulations
@@ -28,8 +27,5 @@ import javax.swing.*;
  */
 public interface PolicyButton {
 
-
     JComponent buildJComponent(FishGUI gui);
-
-
 }

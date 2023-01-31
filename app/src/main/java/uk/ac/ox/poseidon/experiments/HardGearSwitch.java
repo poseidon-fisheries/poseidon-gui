@@ -19,6 +19,8 @@
 package uk.ac.ox.poseidon.experiments;
 
 import ec.util.MersenneTwisterFast;
+import java.io.IOException;
+import java.util.function.Predicate;
 import sim.display.Console;
 import uk.ac.ox.oxfish.biology.initializer.BiologyInitializer;
 import uk.ac.ox.oxfish.biology.initializer.factory.OsmoseBiologyFactory;
@@ -43,16 +45,12 @@ import uk.ac.ox.oxfish.utility.adaptation.maximization.RandomStep;
 import uk.ac.ox.oxfish.utility.parameters.FixedDoubleParameter;
 import uk.ac.ox.poseidon.gui.FishGUI;
 
-import java.io.IOException;
-import java.util.function.Predicate;
-
 /**
  * A scenario to test what happens if the gear switch is not in continuous space but an
  * either-or preposition. Useful to simulate market switches
  * Created by carrknight on 11/12/15.
  */
 public class HardGearSwitch {
-
 
     public static void main(String[] args) throws IOException {
 
@@ -61,16 +59,12 @@ public class HardGearSwitch {
 
         FishState model = HardGearSwitch.buildHardSwitchGearDemo(biologyFactory, mapInitializer, 3, 2, 400, 800);
 
-
         FishGUI gui = new FishGUI(model);
         Console c = new Console(gui);
         c.setVisible(true);
-
-
     }
 
     public static void guiPrototype(String[] args) throws IOException {
-
 
         WellMixedBiologyFactory biologyInitializer = new WellMixedBiologyFactory();
         biologyInitializer.setFirstSpeciesCapacity(new FixedDoubleParameter(5000));
@@ -79,20 +73,18 @@ public class HardGearSwitch {
 
         FishState model = buildHardSwitchGearDemo(biologyInitializer, mapInitializer, 0, 1, 500, 4500);
 
-
         FishGUI gui = new FishGUI(model);
         Console c = new Console(gui);
         c.setVisible(true);
-
-
     }
 
     public static FishState buildHardSwitchGearDemo(
-        AlgorithmFactory<? extends BiologyInitializer> biologyInitializer,
-        AlgorithmFactory<? extends MapInitializer> mapInitializer,
-        final int firstSpecies, final int secondSpecies,
-        final int firstQuota, final int secondQuota
-    ) {
+            AlgorithmFactory<? extends BiologyInitializer> biologyInitializer,
+            AlgorithmFactory<? extends MapInitializer> mapInitializer,
+            final int firstSpecies,
+            final int secondSpecies,
+            final int firstQuota,
+            final int secondQuota) {
         FishState model = new FishState(System.currentTimeMillis(), 1);
 
         PrototypeScenario scenario = new PrototypeScenario();
@@ -104,103 +96,88 @@ public class HardGearSwitch {
         gear.setCatchabilityMap(firstSpecies + ":.01");
         scenario.setGear(gear);
 
-        //mpa rules
+        // mpa rules
         MultiITQStringFactory itqs = new MultiITQStringFactory();
-        itqs.setYearlyQuotaMaps(firstSpecies + ": " +
-            firstQuota + "," +
-            secondSpecies + ":" +
-            secondQuota);
+        itqs.setYearlyQuotaMaps(firstSpecies + ": " + firstQuota + "," + secondSpecies + ":" + secondQuota);
         scenario.setUsePredictors(true);
         scenario.setRegulation(itqs);
-
 
         RandomTrawlStringFactory option1 = new RandomTrawlStringFactory();
         option1.setCatchabilityMap(firstSpecies + ":.01");
         RandomTrawlStringFactory option2 = new RandomTrawlStringFactory();
         option2.setCatchabilityMap(secondSpecies + ":.01");
         model.registerStartable(new Startable() {
-                                    @Override
-                                    public void start(FishState model) {
+            @Override
+            public void start(FishState model) {
 
-                                        for (Fisher fisher : model.getFishers()) {
+                for (Fisher fisher : model.getFishers()) {
 
-                                            ExploreImitateAdaptation<Gear> trawlAdaptation =
-                                                new ExploreImitateAdaptation<>(
-                                                    fisher1 -> true,
-                                                    new BeamHillClimbing<Gear>(
-                                                        new RandomStep<Gear>() {
-                                                            @Override
-                                                            public Gear randomStep(
-                                                                FishState state, MersenneTwisterFast random,
-                                                                Fisher fisher,
-                                                                Gear current
-                                                            ) {
-                                                                return state.random.nextBoolean() ?
-                                                                    option1.apply(state) :
-                                                                    option2.apply(state);
-                                                            }
-                                                        }
-                                                    ),
-                                                    GearImitationAnalysis.DEFAULT_GEAR_ACTUATOR,
-                                                    fisher1 -> fisher1.getGear(),
-                                                    new CashFlowObjective(365),
-                                                    .1, .8, new Predicate<Gear>() {
-                                                    @Override
-                                                    public boolean test(Gear a) {
-                                                        return true;
-                                                    }
-                                                }
-                                                );
-
-                                            //tell the fisher to use this once a year
-                                            fisher.addYearlyAdaptation(trawlAdaptation);
-                                        }
-                                        model.getYearlyDataSet()
-                                            .registerGatherer(model.getSpecies().get(firstSpecies) + " Catchers", state1 -> {
-                                                double size = state1.getFishers().size();
-                                                if (size == 0)
-                                                    return Double.NaN;
-                                                else {
-                                                    double total = 0;
-                                                    for (Fisher fisher1 : state1.getFishers())
-                                                        total += ((RandomCatchabilityTrawl) fisher1.getGear()).getCatchabilityMeanPerSpecie()[firstSpecies]
-                                                            ;
-                                                    return total / .01;
-                                                }
-                                            }, Double.NaN);
-
-
-                                        model.getYearlyDataSet()
-                                            .registerGatherer(model.getSpecies().get(secondSpecies) + " Catchers", state1 -> {
-                                                double size = state1.getFishers().size();
-                                                if (size == 0)
-                                                    return Double.NaN;
-                                                else {
-                                                    double total = 0;
-                                                    for (Fisher fisher1 : state1.getFishers())
-                                                        total += ((RandomCatchabilityTrawl) fisher1.getGear()).getCatchabilityMeanPerSpecie()[secondSpecies]
-                                                            ;
-                                                    return total / .01;
-                                                }
-                                            }, Double.NaN);
-
-
-                                    }
-
-                                    /**
-                                     * tell the startable to turnoff,
-                                     */
-                                    @Override
-                                    public void turnOff() {
-
-                                    }
+                    ExploreImitateAdaptation<Gear> trawlAdaptation = new ExploreImitateAdaptation<>(
+                            fisher1 -> true,
+                            new BeamHillClimbing<Gear>(new RandomStep<Gear>() {
+                                @Override
+                                public Gear randomStep(
+                                        FishState state, MersenneTwisterFast random, Fisher fisher, Gear current) {
+                                    return state.random.nextBoolean() ? option1.apply(state) : option2.apply(state);
                                 }
-        );
+                            }),
+                            GearImitationAnalysis.DEFAULT_GEAR_ACTUATOR,
+                            fisher1 -> fisher1.getGear(),
+                            new CashFlowObjective(365),
+                            .1,
+                            .8,
+                            new Predicate<Gear>() {
+                                @Override
+                                public boolean test(Gear a) {
+                                    return true;
+                                }
+                            });
 
+                    // tell the fisher to use this once a year
+                    fisher.addYearlyAdaptation(trawlAdaptation);
+                }
+                model.getYearlyDataSet()
+                        .registerGatherer(
+                                model.getSpecies().get(firstSpecies) + " Catchers",
+                                state1 -> {
+                                    double size = state1.getFishers().size();
+                                    if (size == 0) return Double.NaN;
+                                    else {
+                                        double total = 0;
+                                        for (Fisher fisher1 : state1.getFishers())
+                                            total += ((RandomCatchabilityTrawl) fisher1.getGear())
+                                                    .getCatchabilityMeanPerSpecie()[firstSpecies];
+                                        return total / .01;
+                                    }
+                                },
+                                Double.NaN);
 
-        //now work!
+                model.getYearlyDataSet()
+                        .registerGatherer(
+                                model.getSpecies().get(secondSpecies) + " Catchers",
+                                state1 -> {
+                                    double size = state1.getFishers().size();
+                                    if (size == 0) return Double.NaN;
+                                    else {
+                                        double total = 0;
+                                        for (Fisher fisher1 : state1.getFishers())
+                                            total += ((RandomCatchabilityTrawl) fisher1.getGear())
+                                                    .getCatchabilityMeanPerSpecie()[secondSpecies];
+                                        return total / .01;
+                                    }
+                                },
+                                Double.NaN);
+            }
+
+            /**
+             * tell the startable to turnoff,
+             */
+            @Override
+            public void turnOff() {}
+        });
+
+        // now work!
         model.setScenario(scenario);
         return model;
     }
-
 }

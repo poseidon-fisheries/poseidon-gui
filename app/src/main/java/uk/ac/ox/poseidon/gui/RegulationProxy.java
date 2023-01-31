@@ -28,18 +28,13 @@ import uk.ac.ox.oxfish.utility.AlgorithmFactory;
  */
 public class RegulationProxy {
 
-
     private AlgorithmFactory<? extends Regulation> globalRegulations = new AnarchyFactory();
-
 
     public AlgorithmFactory<? extends Regulation> getGlobalRegulations() {
         return globalRegulations;
     }
 
-    public void setGlobalRegulations(
-        AlgorithmFactory<? extends Regulation> globalRegulations
-    ) {
+    public void setGlobalRegulations(AlgorithmFactory<? extends Regulation> globalRegulations) {
         this.globalRegulations = globalRegulations;
     }
-
 }

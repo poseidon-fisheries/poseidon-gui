@@ -19,6 +19,20 @@
 package uk.ac.ox.poseidon.experiments;
 
 import com.esotericsoftware.minlog.Log;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.DoubleSummaryStatistics;
+import java.util.LinkedList;
+import java.util.function.ToDoubleFunction;
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import sim.display.Console;
 import uk.ac.ox.oxfish.biology.Species;
 import uk.ac.ox.oxfish.biology.initializer.factory.FromLeftToRightFactory;
@@ -44,21 +58,6 @@ import uk.ac.ox.oxfish.utility.yaml.FishYAML;
 import uk.ac.ox.poseidon.gui.FishGUI;
 import uk.ac.ox.poseidon.gui.ScenarioSelector;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.DoubleSummaryStatistics;
-import java.util.LinkedList;
-import java.util.function.ToDoubleFunction;
-
 /**
  * Created by carrknight on 2/12/16.
  */
@@ -79,10 +78,10 @@ public class TwoPopulations {
         mapInitializer.setCellSizeInKilometers(new FixedDoubleParameter(2));
         scenario.setMapInitializer(mapInitializer);
 
-        scenario.setHoldSize(new SelectDoubleParameter(new double[]{10, 500}));
+        scenario.setHoldSize(new SelectDoubleParameter(new double[] {10, 500}));
         EquidegreeBuilder builder = new EquidegreeBuilder();
         builder.setDegree(new FixedDoubleParameter(2));
-        //connect people that have the same hold to avoid stupid imitation noise.
+        // connect people that have the same hold to avoid stupid imitation noise.
         builder.addPredicate((from, to) -> Math.abs(from.getMaximumHold() - to.getMaximumHold()) < 1);
         scenario.setNetworkBuilder(builder);
 
@@ -94,40 +93,35 @@ public class TwoPopulations {
         state.setScenario(scenario);
 
         state.start();
-        while (state.getYear() < 5)
-            state.schedule.step(state);
+        while (state.getYear() < 5) state.schedule.step(state);
 
         return state;
     }
 
     /*
-            FishGUI gui = new FishGUI(state);
-        Console c = new Console(gui);
-        c.setVisible(true);
-     */
-
+           FishGUI gui = new FishGUI(state);
+       Console c = new Console(gui);
+       c.setVisible(true);
+    */
 
     public static void main(String[] args) throws IOException {
-
 
         final JDialog scenarioSelection = new JDialog((JFrame) null, true);
         final ScenarioSelector scenarioSelector = new ScenarioSelector();
         final JPanel contentPane = new JPanel(new BorderLayout());
         contentPane.add(scenarioSelector, BorderLayout.CENTER);
-        //create ok and exit button
+        // create ok and exit button
         Box buttonBox = new Box(BoxLayout.LINE_AXIS);
         contentPane.add(buttonBox, BorderLayout.SOUTH);
         final JButton ok = new JButton("OK");
-        ok.addActionListener(e -> scenarioSelection.dispatchEvent(new WindowEvent(
-            scenarioSelection, WindowEvent.WINDOW_CLOSING
-        )));
+        ok.addActionListener(
+                e -> scenarioSelection.dispatchEvent(new WindowEvent(scenarioSelection, WindowEvent.WINDOW_CLOSING)));
         buttonBox.add(ok);
         final JButton cancel = new JButton("Cancel");
         cancel.addActionListener(e -> System.exit(0));
         buttonBox.add(cancel);
 
-
-        //create file opener (for YAML)
+        // create file opener (for YAML)
         final JFileChooser chooser = new JFileChooser();
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         Log.info("current directory: " + Paths.get(".").toFile());
@@ -136,11 +130,11 @@ public class TwoPopulations {
         chooser.addChoosableFileFilter(new FileFilter() {
             @Override
             public boolean accept(File f) {
-                if (f.isDirectory()) //you can open directories
-                    return true;
+                if (f.isDirectory()) // you can open directories
+                return true;
                 String extension = com.google.common.io.Files.getFileExtension(f.getAbsolutePath())
-                    .trim()
-                    .toLowerCase();
+                        .trim()
+                        .toLowerCase();
                 return extension.equals("yaml") || extension.equals("yml");
             }
 
@@ -150,60 +144,48 @@ public class TwoPopulations {
             }
         });
 
-
         final JButton filer = new JButton("Open from File");
-        filer.addActionListener(
-            new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
+        filer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
 
+                if (chooser.showOpenDialog(scenarioSelector) == JFileChooser.APPROVE_OPTION) {
+                    File file = chooser.getSelectedFile();
+                    // This is where a real application would open the file.
+                    Log.info("opened file " + file);
+                    FishYAML yaml = new FishYAML();
+                    try {
+                        // read yaml
+                        Scenario scenario = yaml.loadAs(
+                                String.join("\n", java.nio.file.Files.readAllLines(file.toPath())), Scenario.class);
+                        // add it to the swing
+                        SwingUtilities.invokeLater(() -> {
+                            if (scenarioSelector.hasScenario("yaml")) scenarioSelector.removeScenarioOption("yaml");
+                            scenarioSelector.addScenarioOption("yaml", scenario);
+                            scenarioSelector.select("yaml");
+                            scenarioSelector.repaint();
+                        });
 
-                    if (chooser.showOpenDialog(scenarioSelector) == JFileChooser.APPROVE_OPTION) {
-                        File file = chooser.getSelectedFile();
-                        //This is where a real application would open the file.
-                        Log.info("opened file " + file);
-                        FishYAML yaml = new FishYAML();
-                        try {
-                            //read yaml
-                            Scenario scenario = yaml.loadAs(
-                                String.join("\n", java.nio.file.Files.readAllLines(file.toPath())),
-                                Scenario.class
-                            );
-                            //add it to the swing
-                            SwingUtilities.invokeLater(() -> {
-                                if (scenarioSelector.hasScenario("yaml"))
-                                    scenarioSelector.removeScenarioOption("yaml");
-                                scenarioSelector.addScenarioOption("yaml", scenario);
-                                scenarioSelector.select("yaml");
-                                scenarioSelector.repaint();
-                            });
-
-                        } catch (Exception yamlError) {
-                            Log.warn(yamlError.getMessage());
-                            Log.warn(yamlError.toString());
-                            Log.warn(file + " is not a valid YAML scenario!");
-                        }
-                    } else {
-                        Log.info("open file cancelled");
+                    } catch (Exception yamlError) {
+                        Log.warn(yamlError.getMessage());
+                        Log.warn(yamlError.toString());
+                        Log.warn(file + " is not a valid YAML scenario!");
                     }
+                } else {
+                    Log.info("open file cancelled");
                 }
             }
-
-
-        );
+        });
         buttonBox.add(filer);
-
 
         Log.set(Log.LEVEL_INFO);
         scenarioSelection.setContentPane(contentPane);
         scenarioSelection.pack();
         scenarioSelection.setVisible(true);
 
-
         FishState state = new FishState(System.currentTimeMillis(), 1);
         Log.set(Log.LEVEL_NONE);
         Log.setLogger(new FishStateLogger(state, Paths.get("log.csv")));
-
 
         state.setScenario(scenarioSelector.getScenario());
         state.registerStartable(new Startable() {
@@ -212,13 +194,12 @@ public class TwoPopulations {
                 LinkedList<Fisher> poorFishers = new LinkedList<Fisher>();
                 for (Fisher fisher : model.getFishers()) {
                     if (fisher.getID() < 50) {
-                        //change their boat so they can't go very far
+                        // change their boat so they can't go very far
                         fisher.setBoat(new Boat(
-                            fisher.getBoat().getLength(),
-                            fisher.getBoat().getWidth(),
-                            fisher.getBoat().getEngine(),
-                            new FuelTank(500)
-                        ));
+                                fisher.getBoat().getLength(),
+                                fisher.getBoat().getWidth(),
+                                fisher.getBoat().getEngine(),
+                                new FuelTank(500)));
                         fisher.setHold(new Hold(10, model.getBiology()));
                         RandomCatchabilityTrawlFactory gearFactory = new RandomCatchabilityTrawlFactory();
                         gearFactory.setMeanCatchabilityFirstSpecies(new FixedDoubleParameter(.001));
@@ -228,31 +209,31 @@ public class TwoPopulations {
                     } else {
                         fisher.getTags().add("ship");
                         fisher.getTags().add("red");
-
                     }
                 }
 
-                model.getYearlyDataSet().registerGatherer("Poor Fishers Total Income",
-                    fishState -> poorFishers.stream().
-                        mapToDouble(new ToDoubleFunction<Fisher>() {
-                            @Override
-                            public double applyAsDouble(Fisher value) {
-                                return value.getLatestYearlyObservation(
-                                    FisherYearlyTimeSeries.CASH_COLUMN);
-                            }
-                        }).sum(), Double.NaN
-                );
+                model.getYearlyDataSet()
+                        .registerGatherer(
+                                "Poor Fishers Total Income",
+                                fishState -> poorFishers.stream()
+                                        .mapToDouble(new ToDoubleFunction<Fisher>() {
+                                            @Override
+                                            public double applyAsDouble(Fisher value) {
+                                                return value.getLatestYearlyObservation(
+                                                        FisherYearlyTimeSeries.CASH_COLUMN);
+                                            }
+                                        })
+                                        .sum(),
+                                Double.NaN);
             }
 
             @Override
-            public void turnOff() {
-
-            }
+            public void turnOff() {}
         });
 
         PrototypeScenario scenario = (PrototypeScenario) state.getScenario();
         EquidegreeBuilder builder = (EquidegreeBuilder) scenario.getNetworkBuilder();
-        //connect people that have the same hold to avoid stupid imitation noise.
+        // connect people that have the same hold to avoid stupid imitation noise.
 
         builder.addPredicate((from, to) -> {
             // return (from.getID() <50 && to.getID() < 50) ||   (from.getID() >=50 && to.getID() >= 50);
@@ -263,10 +244,7 @@ public class TwoPopulations {
         FishGUI vid = new FishGUI(state);
         Console c = new Console(vid);
         c.setVisible(true);
-
-
     }
-
 
     public static void itq_sweep(String[] args) throws IOException {
 
@@ -282,31 +260,28 @@ public class TwoPopulations {
                 for (Fisher fisher : state.getFishers()) {
                     if (Math.abs(fisher.getMaximumHold() - 10) < .1) {
                         averageSmallLandings.accept(
-                            fisher.getLatestYearlyObservation(species + " " + AbstractMarket.LANDINGS_COLUMN_NAME)
-                        );
+                                fisher.getLatestYearlyObservation(species + " " + AbstractMarket.LANDINGS_COLUMN_NAME));
                     } else {
                         assert Math.abs(fisher.getMaximumHold() - 500) < .1;
                         averageBigLandings.accept(
-                            fisher.getLatestYearlyObservation(species + " " + AbstractMarket.LANDINGS_COLUMN_NAME)
-                        );
+                                fisher.getLatestYearlyObservation(species + " " + AbstractMarket.LANDINGS_COLUMN_NAME));
                     }
                 }
-
-
             }
-            finalOutput.
-                append(price).
-                append(",").
-                append(averageSmallLandings.getAverage()).
-                append(",").
-                append(averageBigLandings.getAverage()).append("\n");
+            finalOutput
+                    .append(price)
+                    .append(",")
+                    .append(averageSmallLandings.getAverage())
+                    .append(",")
+                    .append(averageBigLandings.getAverage())
+                    .append("\n");
             System.out.println(price);
         }
 
-
         System.out.println(finalOutput);
         Path outputFolder = Paths.get("docs", "20160215 heterogeneous");
-        Files.write(outputFolder.resolve("heterogeneous.csv"), finalOutput.toString().getBytes());
-
+        Files.write(
+                outputFolder.resolve("heterogeneous.csv"),
+                finalOutput.toString().getBytes());
     }
 }

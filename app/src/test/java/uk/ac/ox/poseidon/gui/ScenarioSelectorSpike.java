@@ -20,12 +20,9 @@ package uk.ac.ox.poseidon.gui;
 
 import javax.swing.*;
 
-
 public class ScenarioSelectorSpike {
 
-
     public static void main(String[] args) {
-
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -36,10 +33,7 @@ public class ScenarioSelectorSpike {
                 frame.getContentPane().add(selector);
                 frame.pack();
                 frame.setVisible(true);
-
             }
         });
-
     }
-
 }

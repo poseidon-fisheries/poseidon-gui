@@ -19,8 +19,12 @@
 package uk.ac.ox.poseidon.gui.drawing;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import ec.util.MersenneTwisterFast;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+import java.util.Queue;
+import java.util.function.Function;
 import org.metawidget.inspector.annotation.UiHidden;
 import sim.display.GUIState;
 import sim.portrayal.Inspector;
@@ -35,32 +39,24 @@ import uk.ac.ox.poseidon.gui.FishGUI;
 import uk.ac.ox.poseidon.gui.MetaInspector;
 import uk.ac.ox.poseidon.gui.TriColorMap;
 
-import java.awt.*;
-import java.util.List;
-import java.util.Queue;
-import java.util.*;
-import java.util.function.Function;
-
 /**
  * Basically a transformer that changes color mapping according to species.
  * Created by carrknight on 4/22/15.
  */
 public class ColorfulGrid extends FastObjectGridPortrayal2D {
 
-
     /**
      * when drawing biomass use the transform of the current biomass rather than the biomass itself (to avoid large numbers dominating everything)
      */
-    private final static Function<Double, Double> BIOMASS_TRANSFORM = aDouble -> Math.sqrt(aDouble);
-    private final static double MAX_BIOMASS = 5000;
+    private static final Function<Double, Double> BIOMASS_TRANSFORM = aDouble -> Math.sqrt(aDouble);
+
+    private static final double MAX_BIOMASS = 5000;
     /**
      * the default encoder just returns altitude
      */
+    private final ColorMap depthColor =
+            new TriColorMap(-6000, 0, 6000, Color.BLUE, Color.CYAN, Color.GREEN, new Color(0, 100, 0));
 
-    private final ColorMap depthColor = new TriColorMap(-6000, 0, 6000,
-        Color.BLUE, Color.CYAN, Color.GREEN,
-        new Color(0, 100, 0)
-    );
     private final Queue<Color> defaultFishColors = new LinkedList<>();
     private final Map<String, ColorEncoding> encodings;
     private ColorEncoding selected;
@@ -68,26 +64,27 @@ public class ColorfulGrid extends FastObjectGridPortrayal2D {
     /**
      * the specie currently selected, no selection means depth
      */
-
     private final List<ColorfulGridSwitcher> listeners = new LinkedList<>();
+
     @UiHidden
     private final MersenneTwisterFast random;
 
     public ColorfulGrid(MersenneTwisterFast random) {
         encodings = new HashMap<>();
         this.random = random;
-        //add the default color map showing depth
-        encodings.put("Depth", new ColorEncoding(
-            depthColor,
-            seaTile -> seaTile.isProtected() ? Double.NaN : seaTile.getAltitude(), true
-        ));
+        // add the default color map showing depth
+        encodings.put(
+                "Depth",
+                new ColorEncoding(
+                        depthColor, seaTile -> seaTile.isProtected() ? Double.NaN : seaTile.getAltitude(), true));
 
-        //add the default color map showing rocky areas
-        encodings.put("Habitat", new ColorEncoding(
-            new TriColorMap(-1, 0, 1, Color.black, new Color(237, 201, 175), new Color(69, 67, 67)),
-            seaTile -> seaTile.isLand() ? Double.NaN : seaTile.getRockyPercentage(),
-            true
-        ));
+        // add the default color map showing rocky areas
+        encodings.put(
+                "Habitat",
+                new ColorEncoding(
+                        new TriColorMap(-1, 0, 1, Color.black, new Color(237, 201, 175), new Color(69, 67, 67)),
+                        seaTile -> seaTile.isLand() ? Double.NaN : seaTile.getRockyPercentage(),
+                        true));
 
         setSelectedEncoding("Depth");
 
@@ -98,68 +95,57 @@ public class ColorfulGrid extends FastObjectGridPortrayal2D {
         defaultFishColors.add(Color.YELLOW);
     }
 
-
     /**
      * create a colormap for each specie
      *
      * @param biology
      * @param seaTiles
      */
-    public void initializeGrid(
-        GlobalBiology biology,
-        List<SeaTile> seaTiles
-    ) {
+    public void initializeGrid(GlobalBiology biology, List<SeaTile> seaTiles) {
 
         double max = BIOMASS_TRANSFORM.apply(MAX_BIOMASS);
         for (Species species : biology.getSpecies()) {
             max = Math.max(
-                max,
-                BIOMASS_TRANSFORM.apply(
-                    seaTiles.stream().mapToDouble(value -> value.getBiomass(species)).
-                        filter(
-                            Double::isFinite).max().orElse(MAX_BIOMASS))
-            );
+                    max,
+                    BIOMASS_TRANSFORM.apply(seaTiles.stream()
+                            .mapToDouble(value -> value.getBiomass(species))
+                            .filter(Double::isFinite)
+                            .max()
+                            .orElse(MAX_BIOMASS)));
         }
 
         for (Species species : biology.getSpecies()) {
 
-
             Color color = defaultFishColors.size() == 0 ? Color.RED : defaultFishColors.poll();
-            encodings.put(species.getName(), new SelfAdjustingColorEncoding(
-                new SimpleColorMap(0, max, Color.WHITE, color) {
+            encodings.put(
+                    species.getName(),
+                    new SelfAdjustingColorEncoding(
+                            new SimpleColorMap(0, max, Color.WHITE, color) {
 
-                    @Override
-                    public boolean validLevel(double value) {
-                        return true;
-                    }
+                                @Override
+                                public boolean validLevel(double value) {
+                                    return true;
+                                }
 
-                    @Override
-                    public int getRGB(double level) {
-                        return getColor(level).getRGB();
-                    }
+                                @Override
+                                public int getRGB(double level) {
+                                    return getColor(level).getRGB();
+                                }
 
-                    @Override
-                    public Color getColor(double level) {
-                        if (Double.isFinite(level))
-                            return super.getColor(level);
-                        else
-                            return Color.BLACK;
-
-                    }
-                },
-                seaTile ->
-                    seaTile.isLand() ? Double.NaN :
-                        BIOMASS_TRANSFORM.apply(
-                            seaTile.getBiomass(species)),
-                false,
-                max,
-                0
-            ));
+                                @Override
+                                public Color getColor(double level) {
+                                    if (Double.isFinite(level)) return super.getColor(level);
+                                    else return Color.BLACK;
+                                }
+                            },
+                            seaTile -> seaTile.isLand()
+                                    ? Double.NaN
+                                    : BIOMASS_TRANSFORM.apply(seaTile.getBiomass(species)),
+                            false,
+                            max,
+                            0));
         }
-
-
     }
-
 
     /**
      * turn the seatile into a double that can be coded into color by the portrayal
@@ -189,22 +175,17 @@ public class ColorfulGrid extends FastObjectGridPortrayal2D {
         assert selected != null;
         this.setMap(selected.getMap());
         this.setImmutableField(selected.isImmutable());
-
-
     }
-
 
     public void addEnconding(String encodingName, ColorEncoding encoding) {
 
         Preconditions.checkArgument(!encodings.containsKey(encodingName), "Already present color encoding!");
         encodings.put(encodingName, encoding);
-
     }
 
     public void removeEncoding(String encodingName) {
         encodings.remove(encodingName);
     }
-
 
     @Override
     public Inspector getInspector(LocationWrapper wrapper, GUIState state) {
@@ -215,7 +196,6 @@ public class ColorfulGrid extends FastObjectGridPortrayal2D {
         }
     }
 
-
     /**
      * Getter for property 'encodings'.
      *
@@ -224,7 +204,6 @@ public class ColorfulGrid extends FastObjectGridPortrayal2D {
     public Map<String, ColorEncoding> getEncodings() {
         return encodings;
     }
-
 
     public ColorEncoding put(String key, ColorEncoding value) {
         ColorEncoding put = encodings.put(key, value);

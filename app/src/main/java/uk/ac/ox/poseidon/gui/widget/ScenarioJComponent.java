@@ -18,11 +18,10 @@
 
 package uk.ac.ox.poseidon.gui.widget;
 
+import javax.swing.*;
 import org.metawidget.swing.SwingMetawidget;
 import uk.ac.ox.oxfish.model.scenario.Scenario;
 import uk.ac.ox.poseidon.gui.MetaInspector;
-
-import javax.swing.*;
 
 /**
  * The metawidget created by inspecting a scenario object. The name itself is a misnomer because
@@ -49,12 +48,9 @@ public class ScenarioJComponent {
     public ScenarioJComponent(Scenario scenario) {
         this.scenario = scenario;
 
-
         MetaInspector.STANDARD_WIDGET_SETUP(widget, null);
 
-
         widget.setToInspect(scenario);
-
     }
 
     public JComponent getJComponent() {

@@ -18,7 +18,6 @@
 
 package uk.ac.ox.poseidon.experiments.habitat;
 
-
 import uk.ac.ox.oxfish.biology.initializer.BiologyInitializer;
 import uk.ac.ox.oxfish.biology.initializer.factory.RockyLogisticFactory;
 import uk.ac.ox.oxfish.fisher.equipment.gear.Gear;
@@ -37,9 +36,7 @@ import uk.ac.ox.oxfish.utility.parameters.FixedDoubleParameter;
 
 public class HabitatDeploymentScenario implements Scenario {
 
-
     private final PrototypeScenario delegate = new PrototypeScenario();
-
 
     private final AlgorithmFactory<? extends BiologyInitializer> biology = new RockyLogisticFactory();
 
@@ -53,7 +50,6 @@ public class HabitatDeploymentScenario implements Scenario {
         simpleMap.setCellSizeInKilometers(new FixedDoubleParameter(2d));
         delegate.setMapInitializer(simpleMap);
     }
-
 
     /**
      * this is the very first method called by the model when it is started. The scenario needs to instantiate all the
@@ -85,17 +81,13 @@ public class HabitatDeploymentScenario implements Scenario {
         return habitat;
     }
 
-    public void setHabitat(
-        AlgorithmFactory<? extends HabitatInitializer> habitat
-    ) {
+    public void setHabitat(AlgorithmFactory<? extends HabitatInitializer> habitat) {
         this.habitat = habitat;
     }
-
 
     public AlgorithmFactory<? extends Gear> getGear() {
         return gear;
     }
-
 
     public int getFishers() {
         return delegate.getFishers();

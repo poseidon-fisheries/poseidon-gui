@@ -18,6 +18,7 @@
 
 package uk.ac.ox.poseidon.gui;
 
+import java.awt.*;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.field.grid.IntGrid2D;
@@ -27,8 +28,6 @@ import sim.util.gui.SimpleColorMap;
 import uk.ac.ox.oxfish.model.FishState;
 import uk.ac.ox.oxfish.model.data.MovingAverage;
 
-import java.awt.*;
-
 /**
  * Basically an aggregator of the NauticalMap's daily trawl map that instead of resetting every day
  * slowly dampens itself for more pleasing aestetic
@@ -36,21 +35,17 @@ import java.awt.*;
  */
 public class TrawlingHeatMap implements Steppable {
 
-
     /**
      * the actual map we want to display
      */
     private final ObjectGrid2D smoothedHeatMap;
 
-
     private final FastObjectGridPortrayal2D heatMapPortrayal;
-
 
     /**
      * the source of the trawling data
      */
     private final IntGrid2D trawlMap;
-
 
     private double maximum;
 
@@ -63,7 +58,7 @@ public class TrawlingHeatMap implements Steppable {
         for (int x = 0; x < smoothedHeatMap.getWidth(); x++) {
             for (int y = 0; y < smoothedHeatMap.getHeight(); y++) {
                 MovingAverage<Integer> averager = new MovingAverage<>(movingAverageSize);
-                averager.addObservation(0); //start it at 0
+                averager.addObservation(0); // start it at 0
                 smoothedHeatMap.set(x, y, averager);
             }
         }
@@ -72,22 +67,17 @@ public class TrawlingHeatMap implements Steppable {
             @Override
             public double doubleValue(Object obj) {
                 double average = ((MovingAverage) obj).getSmoothedObservation();
-                if (!Double.isFinite(average))
-                    return 0;
-                else
-                    return average;
+                if (!Double.isFinite(average)) return 0;
+                else return average;
             }
         };
         heatMapPortrayal.setField(smoothedHeatMap);
         heatMapPortrayal.setMap(new SimpleColorMap(0, maximum, new Color(0, 0, 0, 0), Color.RED));
-
-
     }
-
 
     @Override
     public void step(SimState simState) {
-        //go through all trawls and add that number to the list
+        // go through all trawls and add that number to the list
         double newMaximum = 0;
         for (int x = 0; x < smoothedHeatMap.getWidth(); x++) {
             for (int y = 0; y < smoothedHeatMap.getHeight(); y++) {
@@ -98,18 +88,16 @@ public class TrawlingHeatMap implements Steppable {
                 newMaximum = Math.max(newMaximum, averager.getSmoothedObservation());
             }
         }
-        //change the color if the current maximum is 15% above the map maximum
+        // change the color if the current maximum is 15% above the map maximum
         if (newMaximum > maximum) {
             maximum = .85 * newMaximum;
             heatMapPortrayal.setMap(new SimpleColorMap(0, maximum, new Color(0, 0, 0, 0), Color.RED));
 
         } else if (maximum > 0) {
-            //decrease it by 0.1% every day otherwise initial close-to port heat is the only thing that matters
+            // decrease it by 0.1% every day otherwise initial close-to port heat is the only thing that matters
             maximum = .999 * maximum;
             heatMapPortrayal.setMap(new SimpleColorMap(0, maximum, new Color(0, 0, 0, 0), Color.RED));
-
         }
-
     }
 
     public FastObjectGridPortrayal2D getHeatMapPortrayal() {

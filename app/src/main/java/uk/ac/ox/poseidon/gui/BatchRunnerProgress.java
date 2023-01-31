@@ -18,9 +18,6 @@
 
 package uk.ac.ox.poseidon.gui;
 
-import uk.ac.ox.oxfish.model.BatchRunner;
-
-import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -29,12 +26,13 @@ import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import javax.swing.*;
+import uk.ac.ox.oxfish.model.BatchRunner;
 
 /**
  * Created by carrknight on 9/25/16.
  */
 public class BatchRunnerProgress extends JPanel implements PropertyChangeListener {
-
 
     private final BatchRunner runner;
 
@@ -50,13 +48,9 @@ public class BatchRunnerProgress extends JPanel implements PropertyChangeListene
      * Creates a new <code>JPanel</code> with a double buffer
      * and a flow layout.
      */
-    public BatchRunnerProgress(
-        BatchRunner runner,
-        int numberOfRuns
-    ) {
+    public BatchRunnerProgress(BatchRunner runner, int numberOfRuns) {
         this.runner = runner;
         this.numberOfRuns = numberOfRuns;
-
 
         progressBar = new JProgressBar(0, numberOfRuns);
         progressBar.setValue(0);
@@ -66,20 +60,18 @@ public class BatchRunnerProgress extends JPanel implements PropertyChangeListene
         taskOutput.setMargin(new Insets(5, 5, 5, 5));
         taskOutput.setEditable(false);
 
-        //JPanel panel = new JPanel();
+        // JPanel panel = new JPanel();
         this.setLayout(new BorderLayout());
         this.add(progressBar, BorderLayout.NORTH);
 
-        //add(panel, BorderLayout.PAGE_START);
+        // add(panel, BorderLayout.PAGE_START);
         add(new JScrollPane(taskOutput), BorderLayout.CENTER);
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
 
         task = new Task();
         task.addPropertyChangeListener(this);
         //  task.execute();
         this.setPreferredSize(new Dimension(800, 600));
-
     }
 
     /**
@@ -93,11 +85,9 @@ public class BatchRunnerProgress extends JPanel implements PropertyChangeListene
         if ("progress" == evt.getPropertyName()) {
             int progress = (Integer) evt.getNewValue();
             progressBar.setValue(progress);
-
         }
         taskOutput.repaint();
         this.repaint();
-
     }
 
     /**
@@ -110,7 +100,6 @@ public class BatchRunnerProgress extends JPanel implements PropertyChangeListene
     }
 
     class Task extends SwingWorker<StringBuffer, Void> {
-
 
         /**
          * Computes a result, or throws an exception if unable to do so.
@@ -137,7 +126,6 @@ public class BatchRunnerProgress extends JPanel implements PropertyChangeListene
             }
 
             return tidy;
-
         }
 
         /**
@@ -162,20 +150,17 @@ public class BatchRunnerProgress extends JPanel implements PropertyChangeListene
         protected void done() {
             try {
                 System.out.println("Done");
-                //write down tidy version
+                // write down tidy version
                 StringBuffer batchOutput = get();
-                Files.write(runner.getOutputFolder().resolve(runner.guessSimulationName() + "_batch.csv"),
-                    batchOutput.toString().getBytes(), StandardOpenOption.CREATE
-                );
+                Files.write(
+                        runner.getOutputFolder().resolve(runner.guessSimulationName() + "_batch.csv"),
+                        batchOutput.toString().getBytes(),
+                        StandardOpenOption.CREATE);
             } catch (ExecutionException e) {
                 e.getCause().printStackTrace();
-                String msg = String.format(
-                    "Unexpected problem: %s",
-                    e.getCause().toString()
-                );
-                JOptionPane.showMessageDialog(null,
-                    msg, "Error", JOptionPane.ERROR_MESSAGE
-                );
+                String msg =
+                        String.format("Unexpected problem: %s", e.getCause().toString());
+                JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
             } catch (InterruptedException e) {
                 // Process e here
             } catch (IOException e) {

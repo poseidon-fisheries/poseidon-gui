@@ -19,14 +19,13 @@
 package uk.ac.ox.poseidon.gui.drawing;
 
 import com.vividsolutions.jts.geom.Point;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
 import sim.display.Display2D;
 import sim.util.Int2D;
 import uk.ac.ox.oxfish.geography.NauticalMap;
 import uk.ac.ox.oxfish.geography.SeaTile;
-
-import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
-import java.awt.geom.Point2D;
 
 /**
  * A utility to turn pixel coordinates into model coordinates. Should really be default but MASON gui hides this somewhere
@@ -38,7 +37,6 @@ import java.awt.geom.Point2D;
  */
 public class CoordinateTransformer {
 
-
     /**
      * the display2d draws objects
      */
@@ -49,13 +47,10 @@ public class CoordinateTransformer {
      */
     private final NauticalMap map;
 
-
     public CoordinateTransformer(Display2D mapDisplay, NauticalMap map) {
         this.display = mapDisplay;
         this.map = map;
-
     }
-
 
     /**
      * click somewhere on the display2D and you will get an event.x and event.y; Plug these in and you will
@@ -67,11 +62,8 @@ public class CoordinateTransformer {
      */
     public SeaTile cellHere(double guiX, double guiY) {
 
-
         final Int2D position = guiToGridPosition(guiX, guiY);
         return map.getSeaTile(position.x, position.y);
-
-
     }
 
     /**
@@ -79,14 +71,11 @@ public class CoordinateTransformer {
      * get the grid cell location touched
      */
     public Int2D guiToGridPosition(double guiX, double guiY) {
-        //create the transformer
+        // create the transformer
         AffineTransform transform = new AffineTransform();
-        transform.translate(
-            display.getOffset().getX(),
-            display.getOffset().getY()
-        );
+        transform.translate(display.getOffset().getX(), display.getOffset().getY());
         transform.scale(display.getScale(), display.getScale());
-        //invert it, which is easy.
+        // invert it, which is easy.
         try {
             transform.invert();
         } catch (NoninvertibleTransformException e) {
@@ -94,20 +83,18 @@ public class CoordinateTransformer {
             System.err.println("failure to transform");
         }
 
-        //get proper X and y
+        // get proper X and y
         final Point2D transformed = transform.transform(new Point2D.Double(guiX, guiY), null);
 
-        //now get the ratios of widths/heights; notice that we need to grab the inside display because
-        //display2d can be resized at any point
+        // now get the ratios of widths/heights; notice that we need to grab the inside display because
+        // display2d can be resized at any point
         double widthRatio = display.insideDisplay.width / map.getWidth();
         double heightRatio = display.insideDisplay.height / map.getHeight();
-
 
         int xCell = (int) (transformed.getX() / widthRatio);
         int yCell = (int) (transformed.getY() / heightRatio);
         return new Int2D(xCell, yCell);
     }
-
 
     /**
      * transforms a click into a JTS point. JTS is a continuous space chart that GeoMason projects the real world coordinates to.
@@ -121,7 +108,6 @@ public class CoordinateTransformer {
 
         return gridToJTSPoint(guiToGridPosition(guiX, guiY));
     }
-
 
     public Point gridToJTSPoint(int x, int y) {
         return map.getRasterBathymetry().toPoint(x, y);
@@ -143,9 +129,5 @@ public class CoordinateTransformer {
 
     public int getCellHeightInJTS() {
         return (int) map.getRasterBathymetry().getPixelHeight();
-
     }
-
 }
-
-

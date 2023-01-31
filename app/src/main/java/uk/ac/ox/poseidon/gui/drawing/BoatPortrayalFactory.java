@@ -20,6 +20,11 @@ package uk.ac.ox.poseidon.gui.drawing;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Map;
+import javax.imageio.ImageIO;
 import sim.display.GUIState;
 import sim.portrayal.Inspector;
 import sim.portrayal.LocationWrapper;
@@ -29,28 +34,20 @@ import uk.ac.ox.oxfish.utility.BoatColors;
 import uk.ac.ox.poseidon.gui.FishGUI;
 import uk.ac.ox.poseidon.gui.MetaInspector;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.Map;
-
 /**
  * Colors boat portrayals given tags
  * Created by carrknight on 7/22/16.
  */
 public class BoatPortrayalFactory {
 
-
-    public final static Map<String, Color> BOAT_COLORS = BoatColors.BOAT_COLORS;
+    public static final Map<String, Color> BOAT_COLORS = BoatColors.BOAT_COLORS;
     private final BufferedImage boatIcon;
     private final BufferedImage shipIcon;
     private final BufferedImage canoeIcon;
     private final FishGUI gui;
-    //when building a lot of pictures, all of the same type the getColor will slow everything down.
-    //this makes it faster
+    // when building a lot of pictures, all of the same type the getColor will slow everything down.
+    // this makes it faster
     private final Table<BufferedImage, Color, BufferedImage> portrayalCache = HashBasedTable.create();
-
 
     public BoatPortrayalFactory(FishGUI gui) throws IOException {
         boatIcon = ImageIO.read(FishGUI.IMAGES_PATH.resolve("boat.png").toFile());
@@ -62,45 +59,35 @@ public class BoatPortrayalFactory {
     public BoatPortrayal build(Fisher fisher) {
 
         BufferedImage correctImage;
-        if (fisher.getTags().contains("ship"))
-            correctImage = shipIcon;
-        else if (fisher.getTags().contains("canoe"))
-            correctImage = canoeIcon;
-        else
-            correctImage = boatIcon;
+        if (fisher.getTags().contains("ship")) correctImage = shipIcon;
+        else if (fisher.getTags().contains("canoe")) correctImage = canoeIcon;
+        else correctImage = boatIcon;
 
         for (Map.Entry<String, Color> color : BOAT_COLORS.entrySet()) {
             if (fisher.getTags().contains(color.getKey()))
                 return new BoatPortrayal(colorImage(correctImage, color.getValue()), gui);
         }
-        //there is no color
+        // there is no color
         return new BoatPortrayal(correctImage, gui);
-
-
     }
 
     public BufferedImage colorImage(BufferedImage old, Color newColor) {
 
         if (!portrayalCache.contains(old, newColor)) {
-            BufferedImage img = new BufferedImage(old.getColorModel(), old.copyData(null), old.isAlphaPremultiplied(),
-                null
-            );
-            //grabbed from here: http://stackoverflow.com/questions/532586/change-a-specific-color-in-an-imageicon
+            BufferedImage img =
+                    new BufferedImage(old.getColorModel(), old.copyData(null), old.isAlphaPremultiplied(), null);
+            // grabbed from here: http://stackoverflow.com/questions/532586/change-a-specific-color-in-an-imageicon
             final int oldRGB = Color.black.getRGB();
             final int newRGB = newColor.getRGB();
             for (int x = 0; x < img.getWidth(); x++) {
                 for (int y = 0; y < img.getHeight(); y++) {
-                    if (img.getRGB(x, y) == oldRGB)
-                        img.setRGB(x, y, newRGB);
+                    if (img.getRGB(x, y) == oldRGB) img.setRGB(x, y, newRGB);
                 }
             }
             portrayalCache.put(old, newColor, img);
         }
         return portrayalCache.get(old, newColor);
-
-
     }
-
 
     private static class BoatPortrayal extends ImagePortrayal2D {
 
@@ -111,15 +98,9 @@ public class BoatPortrayalFactory {
             this.gui = gui;
         }
 
-
         @Override
         public Inspector getInspector(LocationWrapper wrapper, GUIState state) {
-            return wrapper == null ? null :
-                new MetaInspector(wrapper.getObject(), gui);
+            return wrapper == null ? null : new MetaInspector(wrapper.getObject(), gui);
         }
-
-
     }
-
-
 }

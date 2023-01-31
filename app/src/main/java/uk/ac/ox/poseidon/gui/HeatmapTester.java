@@ -18,6 +18,13 @@
 
 package uk.ac.ox.poseidon.gui;
 
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.function.Function;
+import javax.swing.*;
 import sim.display.Console;
 import sim.display.Controller;
 import sim.display.Display2D;
@@ -37,30 +44,15 @@ import uk.ac.ox.poseidon.gui.drawing.ColorfulGrid;
 import uk.ac.ox.poseidon.gui.drawing.ColorfulGridSwitcher;
 import uk.ac.ox.poseidon.gui.drawing.CoordinateTransformer;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.function.Function;
-
 /**
  * Created by carrknight on 6/27/16.
  */
 public class HeatmapTester extends GUIState {
 
-
     public static final int MIN_DIMENSION = 600;
     public static final Path IMAGES_PATH = Paths.get("inputs", "images");
-    public static final TriColorMap DEFAULT_MAP = new TriColorMap(
-        -6000,
-        0,
-        6000,
-        Color.YELLOW,
-        Color.WHITE,
-        new Color(0, 100, 0)
-    );
+    public static final TriColorMap DEFAULT_MAP =
+            new TriColorMap(-6000, 0, 6000, Color.YELLOW, Color.WHITE, new Color(0, 100, 0));
     private final ColorfulGrid myPortrayal;
     private final ColorfulGrid copy;
     private Display2D display2D;
@@ -76,7 +68,6 @@ public class HeatmapTester extends GUIState {
     public HeatmapTester() {
 
         this(new FishState(System.currentTimeMillis()));
-
     }
 
     /**
@@ -88,7 +79,6 @@ public class HeatmapTester extends GUIState {
         super(state);
         myPortrayal = new ColorfulGrid(guirandom);
         copy = new ColorfulGrid(guirandom);
-
     }
 
     public static void main(String[] args) {
@@ -102,7 +92,6 @@ public class HeatmapTester extends GUIState {
         HeatmapTester tester = new HeatmapTester(state);
         Console c = new Console(tester);
         c.setVisible(true);
-
     }
 
     /**
@@ -114,7 +103,6 @@ public class HeatmapTester extends GUIState {
     public void init(Controller controller) {
 
         super.init(controller);
-
     }
 
     /**
@@ -127,8 +115,6 @@ public class HeatmapTester extends GUIState {
         regression = (new DefaultRBFKernelTransductionFactory()).apply((FishState) state);
 
         initialize();
-
-
     }
 
     @Override
@@ -140,12 +126,10 @@ public class HeatmapTester extends GUIState {
     private void initialize() {
         FishState state = (FishState) this.state;
 
-
-        //the console label is a pain in the ass so we need to really use a wrecking ball to modify the way
-        //the label is used
+        // the console label is a pain in the ass so we need to really use a wrecking ball to modify the way
+        // the label is used
         final Box timeBox = (Box) ((Console) controller).getContentPane().getComponents()[0];
-        while (timeBox.getComponents().length > 3)
-            timeBox.remove(3);
+        while (timeBox.getComponents().length > 3) timeBox.remove(3);
 
         final JLabel timeLabel = new JLabel("Not Started Yet");
         (timeBox).add(timeLabel);
@@ -153,7 +137,6 @@ public class HeatmapTester extends GUIState {
             @Override
             public void step(SimState simState) {
                 SwingUtilities.invokeLater(() -> timeLabel.setText(state.timeString()));
-
             }
         });
 
@@ -162,32 +145,31 @@ public class HeatmapTester extends GUIState {
         Display2D other = setupPortrayal(state, copy);
         setupDisplay2D(state, copy, other, "Mirror");
 
+        // add heatmapper
+        myPortrayal.addEnconding(
+                "Heatmap",
+                new ColorEncoding(
+                        DEFAULT_MAP,
+                        new Function<SeaTile, Double>() {
+                            @Override
+                            public Double apply(SeaTile tile) {
+                                return regression.predict(tile, state.getHoursSinceStart(), null, state);
+                            }
+                        },
+                        false));
 
-        //add heatmapper
-        myPortrayal.addEnconding("Heatmap", new ColorEncoding(
-            DEFAULT_MAP,
-            new Function<SeaTile, Double>() {
-                @Override
-                public Double apply(SeaTile tile) {
-                    return regression.predict(tile, state.getHoursSinceStart(), null, state);
-                }
-            },
-            false
-        ));
-
-
-        //add heatmapper
-        copy.addEnconding("Heatmap", new ColorEncoding(
-            DEFAULT_MAP,
-            new Function<SeaTile, Double>() {
-                @Override
-                public Double apply(SeaTile tile) {
-                    return regression.predict(tile, state.getHoursSinceStart(), null, state);
-                }
-            },
-            false
-        ));
-
+        // add heatmapper
+        copy.addEnconding(
+                "Heatmap",
+                new ColorEncoding(
+                        DEFAULT_MAP,
+                        new Function<SeaTile, Double>() {
+                            @Override
+                            public Double apply(SeaTile tile) {
+                                return regression.predict(tile, state.getHoursSinceStart(), null, state);
+                            }
+                        },
+                        false));
 
         transformer = new CoordinateTransformer(display2D, state.getMap());
         heatmapClicker = new MouseListener() {
@@ -197,57 +179,42 @@ public class HeatmapTester extends GUIState {
                 System.out.println("converted: " + gridPosition);
                 System.out.println(e.getX() + " --- " + e.getY());
                 System.out.println("----------------------------------------------");
-                Double observation = state.getMap().getSeaTile(
-                        gridPosition.getX(),
-                        gridPosition.getY()
-                    ).
-                    getBiomass(state.getSpecies().get(0));
-                regression.addObservation(new GeographicalObservation(
-                        state.getMap().getSeaTile(gridPosition.getX(), gridPosition.getY()),
-                        state.getHoursSinceStart(),
-                        observation
-                    ),
-                    state.getFishers().get(0), state
-                );
+                Double observation = state.getMap()
+                        .getSeaTile(gridPosition.getX(), gridPosition.getY())
+                        .getBiomass(state.getSpecies().get(0));
+                regression.addObservation(
+                        new GeographicalObservation(
+                                state.getMap().getSeaTile(gridPosition.getX(), gridPosition.getY()),
+                                state.getHoursSinceStart(),
+                                observation),
+                        state.getFishers().get(0),
+                        state);
 
                 display2D.repaint();
-
             }
 
             @Override
-            public void mousePressed(MouseEvent e) {
-
-            }
+            public void mousePressed(MouseEvent e) {}
 
             @Override
-            public void mouseReleased(MouseEvent e) {
-
-            }
+            public void mouseReleased(MouseEvent e) {}
 
             @Override
-            public void mouseEntered(MouseEvent e) {
-
-            }
+            public void mouseEntered(MouseEvent e) {}
 
             @Override
-            public void mouseExited(MouseEvent e) {
-
-            }
+            public void mouseExited(MouseEvent e) {}
         };
         display2D.insideDisplay.addMouseListener(heatmapClicker);
-
-
     }
 
     private void setupDisplay2D(
-        FishState state, final ColorfulGrid portrayal, final Display2D display, final String title
-    ) {
-        ((JComponent) display.getComponent(0)).add(
-            new ColorfulGridSwitcher(portrayal, state.getBiology(), display));
+            FishState state, final ColorfulGrid portrayal, final Display2D display, final String title) {
+        ((JComponent) display.getComponent(0)).add(new ColorfulGridSwitcher(portrayal, state.getBiology(), display));
         display.reset();
         display.setBackdrop(Color.WHITE);
         display.repaint();
-        //attach it the portrayal
+        // attach it the portrayal
         display.attach(portrayal, "Bathymetry");
 
         displayFrame = display.createFrame();
@@ -262,12 +229,12 @@ public class HeatmapTester extends GUIState {
         portrayal.setField(state.getRasterBathymetry().getGrid());
         portrayal.setMap(new TriColorMap(-6000, 0, 6000, Color.BLUE, Color.CYAN, Color.GREEN, Color.RED));
 
-        //now deal with display2d
-        //change width and height to keep correct geographical ratio
+        // now deal with display2d
+        // change width and height to keep correct geographical ratio
         double width;
         double height;
-        double heightToWidthRatio = ((double) state.getRasterBathymetry().getGridHeight()) / state.getRasterBathymetry()
-            .getGridWidth();
+        double heightToWidthRatio = ((double) state.getRasterBathymetry().getGridHeight())
+                / state.getRasterBathymetry().getGridWidth();
         if (heightToWidthRatio >= 1) {
             width = MIN_DIMENSION;
             height = MIN_DIMENSION * heightToWidthRatio;
@@ -277,5 +244,4 @@ public class HeatmapTester extends GUIState {
         }
         return new Display2D(width, height, this);
     }
-
 }

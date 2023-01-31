@@ -22,17 +22,16 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.util.Arrays;
+import javax.swing.*;
 import sim.display.Display2D;
 import sim.portrayal.grid.FastObjectGridPortrayal2D;
 import sim.util.geo.MasonGeometry;
 import uk.ac.ox.oxfish.geography.NauticalMap;
 import uk.ac.ox.poseidon.gui.FishGUI;
-
-import javax.swing.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.util.Arrays;
 
 /**
  * Drawing mpas over the display2D: useful for a little bit of interaction. The basic drawing of the rectangle I adapted from:
@@ -41,7 +40,6 @@ import java.util.Arrays;
  * Created by carrknight on 7/20/15.
  */
 public class MPADrawer implements MouseListener, MouseMotionListener {
-
 
     private final Display2D fishDisplay;
     private final CoordinateTransformer transformer;
@@ -58,22 +56,20 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
     private MouseListener[] listeners;
 
     public MPADrawer(
-        Display2D fishGUI,
-        CoordinateTransformer transformer, NauticalMap map,
-        FastObjectGridPortrayal2D mapPortrayal, FishGUI scheduler
-    ) {
+            Display2D fishGUI,
+            CoordinateTransformer transformer,
+            NauticalMap map,
+            FastObjectGridPortrayal2D mapPortrayal,
+            FishGUI scheduler) {
         this.fishDisplay = fishGUI;
         this.transformer = transformer;
         this.map = map;
         bathymetryPortrayal = mapPortrayal;
         this.scheduler = scheduler;
-
-
     }
 
-
     public void attach() {
-        //fishDisplay.getMouseListeners();
+        // fishDisplay.getMouseListeners();
         //  final MouseListener[] mouseListeners = fishDisplay.getMouseListeners();
         //   for(MouseListener listener : mouseListeners)
 
@@ -81,9 +77,7 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
             attached = true;
             fishDisplay.insideDisplay.addMouseListener(this);
             fishDisplay.insideDisplay.addMouseMotionListener(this);
-
         }
-
     }
 
     public void detach() {
@@ -91,10 +85,8 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
             attached = false;
             fishDisplay.insideDisplay.removeMouseListener(this);
             fishDisplay.insideDisplay.removeMouseMotionListener(this);
-
         }
     }
-
 
     /**
      * Invoked when the mouse button has been clicked (pressed
@@ -105,15 +97,12 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
     @Override
     public void mouseClicked(MouseEvent e) {
 
-
         fishDisplay.repaint();
         final int[] displacements = computeDisplacements();
         System.out.println(Arrays.toString(displacements));
         System.out.println("converted: " + transformer.guiToGridPosition(e.getX(), e.getY()));
-        System.out.println("transformed: " + transformer.guiToGridPosition(
-            e.getX() + displacements[0],
-            e.getY() + displacements[1]
-        ));
+        System.out.println("transformed: "
+                + transformer.guiToGridPosition(e.getX() + displacements[0], e.getY() + displacements[1]));
         System.out.println(e.getX() + " --- " + e.getY());
         System.out.println("----------------------------------------------");
     }
@@ -142,17 +131,15 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
     @Override
     public void mouseReleased(MouseEvent e) {
 
-
         if (hasDragged) {
-
 
             System.out.println("rectangle from : " + transformer.cellHere(startX, startY));
             System.out.println("rectangle to : " + transformer.cellHere(endX, endY));
 
             final Point startPoint = transformer.guiToJTSPoint(startX, startY);
             final Point endPoint = transformer.guiToJTSPoint(endX, endY);
-            //notice the - cellSize; the fact is that coordinates represent the center of the sea-tile while you want
-            //the MPA rectangle to start from the lower left
+            // notice the - cellSize; the fact is that coordinates represent the center of the sea-tile while you want
+            // the MPA rectangle to start from the lower left
             double lowerLeftX = Math.min(startPoint.getX(), endPoint.getX()) - transformer.getCellWidthInJTS() / 2;
             double lowerLeftY = Math.min(startPoint.getY(), endPoint.getY()) - transformer.getCellHeightInJTS() / 2;
 
@@ -162,7 +149,6 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
 
             final Polygon rectangle = geometryFactory.createRectangle();
             System.out.println(rectangle);
-
 
             synchronized (scheduler.state.schedule) {
                 map.getMpaVectorField().addGeometry(new MasonGeometry(rectangle));
@@ -179,10 +165,8 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
             }
 
             hasDragged = false;
-
         }
     }
-
 
     /**
      * Invoked when a mouse button is pressed on a component and then
@@ -200,16 +184,14 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
     @Override
     public void mouseDragged(MouseEvent e) {
 
-        //these are basically a way to adapt when the model displayed is smaller than the display size
-        //in which case mason centers it weirdly in the middle
+        // these are basically a way to adapt when the model displayed is smaller than the display size
+        // in which case mason centers it weirdly in the middle
         int[] displacements = computeDisplacements();
-
 
         endX = e.getX() + displacements[0];
         endY = e.getY() + displacements[1];
         hasDragged = true;
         fishDisplay.repaint();
-
     }
 
     /**
@@ -221,13 +203,19 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
     private int[] computeDisplacements() {
         int[] displacements = new int[2];
 
+        displacements[0] =
+                fishDisplay.insideDisplay.width < fishDisplay.insideDisplay.getWidth() / fishDisplay.getScale()
+                        ? (int) ((fishDisplay.insideDisplay.width
+                                        - fishDisplay.insideDisplay.getWidth() / fishDisplay.getScale())
+                                / (2 / fishDisplay.getScale()))
+                        : 0;
 
-        displacements[0] = fishDisplay.insideDisplay.width < fishDisplay.insideDisplay.getWidth() / fishDisplay.getScale() ?
-            (int) ((fishDisplay.insideDisplay.width - fishDisplay.insideDisplay.getWidth() / fishDisplay.getScale()) / (2 / fishDisplay.getScale())) : 0;
-
-        displacements[1] = fishDisplay.insideDisplay.height < fishDisplay.insideDisplay.getHeight() / fishDisplay.getScale() ?
-            (int) ((fishDisplay.insideDisplay.height - fishDisplay.insideDisplay.getHeight() / fishDisplay.getScale()) / (2 / fishDisplay.getScale())) : 0;
-
+        displacements[1] =
+                fishDisplay.insideDisplay.height < fishDisplay.insideDisplay.getHeight() / fishDisplay.getScale()
+                        ? (int) ((fishDisplay.insideDisplay.height
+                                        - fishDisplay.insideDisplay.getHeight() / fishDisplay.getScale())
+                                / (2 / fishDisplay.getScale()))
+                        : 0;
 
         return displacements;
     }
@@ -238,9 +226,7 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
      * @param e
      */
     @Override
-    public void mouseEntered(MouseEvent e) {
-
-    }
+    public void mouseEntered(MouseEvent e) {}
 
     /**
      * Invoked when the mouse exits a component.
@@ -252,7 +238,6 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
         int[] displacements = computeDisplacements();
         endX = e.getX() + displacements[0];
         endY = e.getY() + displacements[1];
-
     }
 
     /**
@@ -262,7 +247,5 @@ public class MPADrawer implements MouseListener, MouseMotionListener {
      * @param e
      */
     @Override
-    public void mouseMoved(MouseEvent e) {
-
-    }
+    public void mouseMoved(MouseEvent e) {}
 }

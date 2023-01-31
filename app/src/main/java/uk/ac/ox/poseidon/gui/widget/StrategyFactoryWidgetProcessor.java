@@ -18,18 +18,17 @@
 
 package uk.ac.ox.poseidon.gui.widget;
 
-import org.apache.commons.beanutils.PropertyUtils;
-import org.metawidget.swing.SwingMetawidget;
-import org.metawidget.widgetprocessor.iface.WidgetProcessor;
-import uk.ac.ox.oxfish.utility.AlgorithmFactories;
-import uk.ac.ox.oxfish.utility.AlgorithmFactory;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.swing.*;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.metawidget.swing.SwingMetawidget;
+import org.metawidget.widgetprocessor.iface.WidgetProcessor;
+import uk.ac.ox.oxfish.utility.AlgorithmFactories;
+import uk.ac.ox.oxfish.utility.AlgorithmFactory;
 
 /**
  * This class looks for factory_strategy attributes and if it finds them it creates a combo-box so
@@ -40,19 +39,15 @@ public class StrategyFactoryWidgetProcessor implements WidgetProcessor<JComponen
 
     public static String addressFromPath(Map<String, String> attributes, SwingMetawidget metawidget) {
         String[] path = metawidget.getPath().split("/");
-        if (path.length == 1)
-            return attributes.get("name");
+        if (path.length == 1) return attributes.get("name");
         else {
             StringBuilder builder = new StringBuilder();
-            for (int i = 1; i < path.length; i++)
-                builder.append(path[i]).append(".");
+            for (int i = 1; i < path.length; i++) builder.append(path[i]).append(".");
             builder.append(attributes.get("name"));
             return builder.toString();
-
         }
 
-
-        //nested address? no problem
+        // nested address? no problem
         // return osmoseWFSPath.length == 2? osmoseWFSPath[1] + "." + attributes.get("name") :
         //        attributes.get("name");
     }
@@ -74,54 +69,47 @@ public class StrategyFactoryWidgetProcessor implements WidgetProcessor<JComponen
      */
     @Override
     public JComponent processWidget(
-        JComponent widget, String elementName, Map<String, String> attributes, SwingMetawidget metawidget
-    ) {
+            JComponent widget, String elementName, Map<String, String> attributes, SwingMetawidget metawidget) {
 
         try {
             if (attributes.containsKey("factory_strategy")) {
-                //find it what are you building
+                // find it what are you building
                 Class strategyClass = Class.forName(attributes.get("factory_strategy"));
-                //get list of constructors
-                Map<String, ? extends Supplier<? extends AlgorithmFactory>>
-                    constructors =
-                    AlgorithmFactories.CONSTRUCTOR_MAP.get(strategyClass);
-                Map<? extends Class<? extends AlgorithmFactory>, String> names = AlgorithmFactories.NAMES_MAP.get(
-                    strategyClass);
+                // get list of constructors
+                Map<String, ? extends Supplier<? extends AlgorithmFactory>> constructors =
+                        AlgorithmFactories.CONSTRUCTOR_MAP.get(strategyClass);
+                Map<? extends Class<? extends AlgorithmFactory>, String> names =
+                        AlgorithmFactories.NAMES_MAP.get(strategyClass);
 
                 final Object beingInspected = metawidget.getToInspect();
                 final String fieldName = attributes.get("name");
 
-                //try to select
+                // try to select
 
-                //build JComponent
+                // build JComponent
                 final JComboBox<String> factoryBox = new JComboBox<>();
-                //fill it with the strings from the constructor masterlist
-                if (constructors == null)
-                    return widget;
+                // fill it with the strings from the constructor masterlist
+                if (constructors == null) return widget;
                 constructors.keySet().forEach(factoryBox::addItem);
                 factoryBox.setSelectedIndex(-1);
-                //find out which strategy factory is currently selected and try to show it in the combo-box
+                // find out which strategy factory is currently selected and try to show it in the combo-box
                 try {
                     String address = addressFromPath(attributes, metawidget);
 
-                    //current class
-                    Class actualClass = PropertyUtils.getProperty(
-                        metawidget.getToInspect(),
-                        address
-                    ).getClass();
-                    //go through the constructors looking for that class
+                    // current class
+                    Class actualClass = PropertyUtils.getProperty(metawidget.getToInspect(), address)
+                            .getClass();
+                    // go through the constructors looking for that class
                     String name = names.get(actualClass);
 
-                    //if found, set selected
+                    // if found, set selected
                     factoryBox.setSelectedItem(name);
-
 
                 } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     e.printStackTrace();
                 }
 
-
-                //gui layout and panelling:
+                // gui layout and panelling:
                 JPanel panel = new JPanel();
                 BoxLayout layout = new BoxLayout(panel, BoxLayout.PAGE_AXIS);
                 panel.setLayout(layout);
@@ -129,43 +117,40 @@ public class StrategyFactoryWidgetProcessor implements WidgetProcessor<JComponen
                 panel.add(new JSeparator());
                 panel.add(widget);
 
-                //now listen carefully to combobx
+                // now listen carefully to combobx
                 factoryBox.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        //we need to make changes!
+                        // we need to make changes!
                         try {
-                            //nested address? no problem
-                            String address = StrategyFactoryWidgetProcessor.addressFromPath(
-                                attributes, metawidget);
+                            // nested address? no problem
+                            String address = StrategyFactoryWidgetProcessor.addressFromPath(attributes, metawidget);
 
-                            //use the beansutils to set the new value to the field
+                            // use the beansutils to set the new value to the field
                             PropertyUtils.setProperty(
-                                //the object to modify
-                                beingInspected,
-                                //the name of the field
-                                address,
-                                //the new value (table lookup)
-                                constructors.get((String) factoryBox.getSelectedItem()).get()
-                            );
+                                    // the object to modify
+                                    beingInspected,
+                                    // the name of the field
+                                    address,
+                                    // the new value (table lookup)
+                                    constructors
+                                            .get((String) factoryBox.getSelectedItem())
+                                            .get());
 
-                            //now update the gui
-                            //for some reason rebind alone is not enough here (although it is strange because it works elsewhere for the same change)
-                            //metawidget.getWidgetProcessor(BeanUtilsBindingProcessor.class).rebind(metawidget.getToInspect(),metawidget);
+                            // now update the gui
+                            // for some reason rebind alone is not enough here (although it is strange because it works
+                            // elsewhere for the same change)
+                            // metawidget.getWidgetProcessor(BeanUtilsBindingProcessor.class).rebind(metawidget.getToInspect(),metawidget);
 
-                            //so i bind it again by setter
+                            // so i bind it again by setter
                             metawidget.setToInspect(beingInspected);
                             if (metawidget.getParent() != null) {
                                 metawidget.getParent().revalidate();
-
                             }
-                        } catch (IllegalAccessException | InvocationTargetException |
-                                 NoSuchMethodException e1) {
+                        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
                             System.err.print("failed to find class! " + e1);
                             e1.printStackTrace();
                         }
-
-
                     }
                 });
 
@@ -174,9 +159,7 @@ public class StrategyFactoryWidgetProcessor implements WidgetProcessor<JComponen
         } catch (ClassNotFoundException c) {
             System.err.print("failed to find class! " + c);
             c.printStackTrace();
-
         }
-
 
         return widget;
     }

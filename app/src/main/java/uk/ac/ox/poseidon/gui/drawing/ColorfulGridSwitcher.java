@@ -18,19 +18,17 @@
 
 package uk.ac.ox.poseidon.gui.drawing;
 
-import sim.display.Display2D;
-import uk.ac.ox.oxfish.biology.GlobalBiology;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.*;
+import sim.display.Display2D;
+import uk.ac.ox.oxfish.biology.GlobalBiology;
 
 /**
  * Custom combo-box to switch what is displayed
  * Created by carrknight on 4/22/15.
  */
 public class ColorfulGridSwitcher extends JComboBox<String> implements ActionListener {
-
 
     private final ColorfulGrid toModify;
 
@@ -49,17 +47,14 @@ public class ColorfulGridSwitcher extends JComboBox<String> implements ActionLis
         this.toModify = toModify;
         this.toRefresh = toRefresh;
 
-
         toModify.addListener(this);
 
-        for (String key : toModify.getEncodings().keySet())
-            addItem(key);
+        for (String key : toModify.getEncodings().keySet()) addItem(key);
         setSelectedItem(toModify.getSelectedName());
 
         JComboBox<String> reference = this;
 
         addActionListener(this);
-
 
         toRefresh.display.getViewport().addChangeListener(e -> {
             boolean isImmutable = toModify.isImmutableField();
@@ -68,10 +63,7 @@ public class ColorfulGridSwitcher extends JComboBox<String> implements ActionLis
             toRefresh.repaint();
             toModify.setImmutableField(isImmutable);
         });
-
-
     }
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -85,8 +77,7 @@ public class ColorfulGridSwitcher extends JComboBox<String> implements ActionLis
         removeActionListener(this);
 
         removeAllItems();
-        for (String key : toModify.getEncodings().keySet())
-            addItem(key);
+        for (String key : toModify.getEncodings().keySet()) addItem(key);
         setSelectedItem(toModify.getSelectedName());
 
         addActionListener(this);

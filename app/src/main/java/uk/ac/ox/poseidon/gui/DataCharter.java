@@ -19,6 +19,12 @@
 package uk.ac.ox.poseidon.gui;
 
 import com.google.common.base.Preconditions;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import javax.swing.*;
 import org.jfree.data.xy.XYSeries;
 import sim.display.GUIState;
 import sim.engine.SimState;
@@ -29,19 +35,11 @@ import uk.ac.ox.oxfish.model.FishState;
 import uk.ac.ox.oxfish.model.data.collectors.DataColumn;
 import uk.ac.ox.oxfish.model.data.collectors.IntervalPolicy;
 
-import javax.swing.*;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
 /**
  * Takes one or more data-columns and chart them
  * Created by carrknight on 6/9/15.
  */
 public class DataCharter {
-
 
     private final Function<FishState, Double> xColumn;
 
@@ -49,9 +47,7 @@ public class DataCharter {
 
     private final TimeSeriesChartGenerator chart;
 
-
     private Stoppable stoppable;
-
 
     public DataCharter(IntervalPolicy policy, DataColumn column) {
         chart = new TimeSeriesChartGenerator();
@@ -80,53 +76,54 @@ public class DataCharter {
         seriesMap.put(column, series);
     }
 
-
     public void start(GUIState gui) {
 
         Preconditions.checkState(stoppable == null, "Already started!");
 
         assert SwingUtilities.isEventDispatchThread();
-        //get each series with its data
+        // get each series with its data
         for (Map.Entry<DataColumn, XYSeries> entry : seriesMap.entrySet()) {
-            //if the data-column already has values, populate it on the fly
+            // if the data-column already has values, populate it on the fly
             int numberOfObservations = entry.getKey().size();
             if (numberOfObservations > 0) {
-                //what's the current date?
+                // what's the current date?
                 double currentX = xColumn.apply((FishState) gui.state);
                 for (int i = 0; i < numberOfObservations; i++) {
-                    //add them assuming fixed distance
-                    entry.getValue().add(currentX - numberOfObservations + i, entry.getKey().get(i));
+                    // add them assuming fixed distance
+                    entry.getValue()
+                            .add(
+                                    currentX - numberOfObservations + i,
+                                    entry.getKey().get(i));
                 }
-                assert entry.getValue().getItemCount() == entry.getKey().size(); //should be of the same size now!
+                assert entry.getValue().getItemCount() == entry.getKey().size(); // should be of the same size now!
             }
-
         }
 
-        //schedule for update
+        // schedule for update
         stoppable = gui.scheduleRepeatingImmediatelyAfter(new Steppable() {
             @Override
             public void step(SimState simState) {
 
-                //for every column
+                // for every column
                 for (Map.Entry<DataColumn, XYSeries> entry : seriesMap.entrySet()) {
                     if (entry.getKey().size() > entry.getValue().getItemCount()) {
-                        //should be different only by one at most
-//                        assert entry.getValue().getItemCount() == entry.getKey().size() + 1;
-                        //not true in fast real time situations
-                        entry.getValue().add(xColumn.apply((FishState) simState), entry.getKey().getLatest());
-
+                        // should be different only by one at most
+                        //                        assert entry.getValue().getItemCount() == entry.getKey().size() + 1;
+                        // not true in fast real time situations
+                        entry.getValue()
+                                .add(
+                                        xColumn.apply((FishState) simState),
+                                        entry.getKey().getLatest());
                     }
 
                     assert entry.getValue().getItemCount() == entry.getKey().size();
-
-
                 }
 
                 chart.updateChartLater(simState.schedule.getSteps());
             }
         });
 
-        //make visible
+        // make visible
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -134,19 +131,15 @@ public class DataCharter {
                 frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                 frame.setVisible(true);
                 frame.pack();
-                //register with controller
+                // register with controller
                 gui.controller.registerFrame(frame);
-                //turnOff on dispose
+                // turnOff on dispose
                 frame.addWindowListener(new WindowListener() {
                     @Override
-                    public void windowOpened(WindowEvent e) {
-
-                    }
+                    public void windowOpened(WindowEvent e) {}
 
                     @Override
-                    public void windowClosing(WindowEvent e) {
-
-                    }
+                    public void windowClosing(WindowEvent e) {}
 
                     @Override
                     public void windowClosed(WindowEvent e) {
@@ -154,27 +147,18 @@ public class DataCharter {
                     }
 
                     @Override
-                    public void windowIconified(WindowEvent e) {
-
-                    }
+                    public void windowIconified(WindowEvent e) {}
 
                     @Override
-                    public void windowDeiconified(WindowEvent e) {
-
-                    }
+                    public void windowDeiconified(WindowEvent e) {}
 
                     @Override
-                    public void windowActivated(WindowEvent e) {
-
-                    }
+                    public void windowActivated(WindowEvent e) {}
 
                     @Override
-                    public void windowDeactivated(WindowEvent e) {
-
-                    }
+                    public void windowDeactivated(WindowEvent e) {}
                 });
             }
         });
-
     }
 }
