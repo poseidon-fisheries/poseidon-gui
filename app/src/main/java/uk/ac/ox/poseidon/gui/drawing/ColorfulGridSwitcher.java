@@ -30,6 +30,7 @@ import uk.ac.ox.oxfish.biology.GlobalBiology;
  */
 public class ColorfulGridSwitcher extends JComboBox<String> implements ActionListener {
 
+    private static final long serialVersionUID = 1L;
     private final ColorfulGrid toModify;
 
     private final Display2D toRefresh;

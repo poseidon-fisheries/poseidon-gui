@@ -45,6 +45,7 @@ public class StrategyInspector extends BaseObjectInspector {
      *
      * @param property the property to inspect
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     protected Map<String, String> inspectProperty(Property property) throws Exception {
 

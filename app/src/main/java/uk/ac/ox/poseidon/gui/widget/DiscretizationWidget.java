@@ -73,6 +73,8 @@ public class DiscretizationWidget implements WidgetBuilder<JComponent, SwingMeta
 
     private static class DiscretizationJButton extends JButton implements ActionListener {
 
+        private static final long serialVersionUID = 1L;
+
         private final FishGUI gui;
 
         private final MapDiscretization regression;

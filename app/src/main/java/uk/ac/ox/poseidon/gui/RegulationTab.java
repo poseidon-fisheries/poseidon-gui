@@ -32,6 +32,8 @@ import uk.ac.ox.poseidon.gui.drawing.MPADrawer;
  */
 public class RegulationTab extends JPanel {
 
+    private static final long serialVersionUID = 1L;
+
     private final RegulationProxy regulations;
 
     /**

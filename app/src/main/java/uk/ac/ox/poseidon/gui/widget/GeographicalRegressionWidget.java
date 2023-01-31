@@ -63,6 +63,7 @@ public class GeographicalRegressionWidget implements WidgetBuilder<JComponent, S
     /**
      * tries to build a list of market subwidgets for each market available in this MarketMap object
      */
+    @SuppressWarnings("rawtypes")
     @Override
     public JComponent buildWidget(String elementName, Map<String, String> attributes, SwingMetawidget metawidget) {
 
@@ -102,8 +103,11 @@ public class GeographicalRegressionWidget implements WidgetBuilder<JComponent, S
 
     private static class GeographicalRegressionJButton extends JButton implements ActionListener {
 
+        private static final long serialVersionUID = 1L;
+
         private final FishGUI gui;
 
+        @SuppressWarnings("rawtypes")
         private final GeographicalRegression regression;
 
         private final Fisher fisher;
@@ -111,6 +115,7 @@ public class GeographicalRegressionWidget implements WidgetBuilder<JComponent, S
         /**
          * Creates a button with no set text or icon.
          */
+        @SuppressWarnings("rawtypes")
         GeographicalRegressionJButton(FishGUI gui, GeographicalRegression regression, Fisher fisher, String name) {
             this.gui = gui;
             this.regression = regression;

@@ -59,7 +59,9 @@ public class HeatmapTester extends GUIState {
     private JFrame displayFrame;
     private CoordinateTransformer transformer;
 
+    @SuppressWarnings("rawtypes")
     private GeographicalRegression regression;
+
     private MouseListener heatmapClicker;
 
     /**
@@ -133,12 +135,8 @@ public class HeatmapTester extends GUIState {
 
         final JLabel timeLabel = new JLabel("Not Started Yet");
         (timeBox).add(timeLabel);
-        scheduleRepeatingImmediatelyAfter(new Steppable() {
-            @Override
-            public void step(SimState simState) {
-                SwingUtilities.invokeLater(() -> timeLabel.setText(state.timeString()));
-            }
-        });
+        scheduleRepeatingImmediatelyAfter(
+                (Steppable) simState -> SwingUtilities.invokeLater(() -> timeLabel.setText(state.timeString())));
 
         display2D = setupPortrayal(state, myPortrayal);
         setupDisplay2D(state, myPortrayal, display2D, "Main");
@@ -173,6 +171,7 @@ public class HeatmapTester extends GUIState {
 
         transformer = new CoordinateTransformer(display2D, state.getMap());
         heatmapClicker = new MouseListener() {
+            @SuppressWarnings({"unchecked", "rawtypes"})
             @Override
             public void mouseClicked(MouseEvent e) {
                 Int2D gridPosition = transformer.guiToGridPosition(e.getX(), e.getY());
@@ -182,6 +181,7 @@ public class HeatmapTester extends GUIState {
                 Double observation = state.getMap()
                         .getSeaTile(gridPosition.getX(), gridPosition.getY())
                         .getBiomass(state.getSpecies().get(0));
+
                 regression.addObservation(
                         new GeographicalObservation(
                                 state.getMap().getSeaTile(gridPosition.getX(), gridPosition.getY()),

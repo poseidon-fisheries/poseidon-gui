@@ -35,6 +35,8 @@ import uk.ac.ox.oxfish.utility.FishStateUtilities;
  */
 public class SaveButton extends JButton implements ActionListener {
 
+    private static final long serialVersionUID = 1L;
+
     private static final ImageIcon saveIcon;
 
     static {

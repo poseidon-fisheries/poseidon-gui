@@ -34,6 +34,7 @@ import uk.ac.ox.oxfish.utility.parameters.DoubleParameters;
  * looks for the double_parameter attributes so that you can switch its distribution at gui
  * Created by carrknight on 6/7/15.
  */
+@SuppressWarnings("rawtypes")
 public class DoubleParameterWidgetProcessor implements WidgetProcessor<JComponent, SwingMetawidget> {
 
     public static final String KEY_TO_LOOK_FOR = "double_parameter";

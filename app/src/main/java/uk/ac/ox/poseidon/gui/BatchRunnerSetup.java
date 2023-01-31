@@ -29,9 +29,8 @@ import org.metawidget.swing.SwingMetawidget;
  */
 public class BatchRunnerSetup extends JPanel {
 
+    private static final long serialVersionUID = -1484602071595418015L;
     private final BatchRunnerFactory factory = new BatchRunnerFactory();
-
-    private final SwingMetawidget widget = new SwingMetawidget();
 
     /**
      * Constructs a new frame that is initially invisible.
@@ -50,6 +49,7 @@ public class BatchRunnerSetup extends JPanel {
 
         setLayout(new BorderLayout());
 
+        SwingMetawidget widget = new SwingMetawidget();
         MetaInspector.STANDARD_WIDGET_SETUP(widget, null);
 
         widget.setToInspect(factory);

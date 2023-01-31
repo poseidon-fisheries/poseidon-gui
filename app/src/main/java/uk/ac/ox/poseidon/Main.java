@@ -92,8 +92,9 @@ public class Main {
         chooser.addChoosableFileFilter(new FileFilter() {
             @Override
             public boolean accept(File f) {
-                if (f.isDirectory()) // you can open directories
-                return true;
+                if (f.isDirectory()) { // you can open directories
+                    return true;
+                }
                 String extension =
                         Files.getFileExtension(f.getAbsolutePath()).trim().toLowerCase();
                 return extension.equals("yaml") || extension.equals("yml");

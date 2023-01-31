@@ -91,6 +91,7 @@ public class BoatPortrayalFactory {
 
     private static class BoatPortrayal extends ImagePortrayal2D {
 
+        private static final long serialVersionUID = -1087208333467756656L;
         final FishGUI gui;
 
         public BoatPortrayal(Image image, FishGUI gui) {

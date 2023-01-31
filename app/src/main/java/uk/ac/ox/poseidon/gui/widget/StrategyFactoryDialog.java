@@ -35,7 +35,10 @@ import uk.ac.ox.poseidon.gui.MetaInspector;
  * A panel containing a combo-box to select a strategy factory
  * Created by carrknight on 6/7/15.
  */
+@SuppressWarnings("rawtypes")
 public class StrategyFactoryDialog<T> extends JPanel implements ActionListener {
+
+    private static final long serialVersionUID = 1L;
 
     private final JPanel settings;
     /**

@@ -41,6 +41,7 @@ import uk.ac.ox.poseidon.gui.FishGUI;
  * They could all be strictly different builders, but this way i lower the amount of useless code replication
  * Created by carrknight on 6/13/15.
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class DataWidgetBuilder implements WidgetBuilder<JComponent, SwingMetawidget> {
 
     /**
@@ -60,6 +61,7 @@ public class DataWidgetBuilder implements WidgetBuilder<JComponent, SwingMetawid
     /**
      * if the class is a TimeSeries, build a list of buttons
      */
+    @SuppressWarnings("rawtypes")
     @Override
     public JComponent buildWidget(String elementName, Map<String, String> attributes, SwingMetawidget metawidget) {
 

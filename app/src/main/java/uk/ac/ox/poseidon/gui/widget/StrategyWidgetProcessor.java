@@ -59,6 +59,7 @@ public class StrategyWidgetProcessor implements WidgetProcessor<JComponent, Swin
      * another. Can be null if the WidgetProcessor wishes to cancel all further processing
      * of this widget (including laying out)
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public JComponent processWidget(
             JComponent widget, String elementName, Map<String, String> attributes, SwingMetawidget metawidget) {
@@ -79,43 +80,40 @@ public class StrategyWidgetProcessor implements WidgetProcessor<JComponent, Swin
             // add a button to change strategy
             JButton changeStrategy = new JButton(actualClass.getSimpleName());
             widget.add(changeStrategy);
-            changeStrategy.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    // if possible, pause!
+            changeStrategy.addActionListener(e -> {
+                // if possible, pause!
 
-                    StrategyFactoryDialog dialog = new StrategyFactoryDialog(superClass);
-                    int returned = JOptionPane.showOptionDialog(
-                            widget,
-                            dialog,
-                            "Select New Strategy",
-                            JOptionPane.OK_CANCEL_OPTION,
-                            JOptionPane.QUESTION_MESSAGE,
-                            null,
-                            null,
-                            null);
-                    // if ok was pressed on the dialog
-                    if (returned == JOptionPane.OK_OPTION) {
-                        final Object newStrategy = dialog.getSelected().apply(state.state);
-                        // use the beansutils to set the new value to the field
-                        try {
-                            synchronized (state.state.schedule) {
-                                PropertyUtils.setSimpleProperty(
-                                        // the object to modify
-                                        toModify,
-                                        // the name of the field
-                                        attributes.get("name"),
-                                        // the new value (table lookup)
-                                        newStrategy);
-                            }
-                        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
-                            System.err.print("failed to set new strategy! " + e1);
-                            e1.printStackTrace();
+                StrategyFactoryDialog dialog = new StrategyFactoryDialog(superClass);
+                int returned = JOptionPane.showOptionDialog(
+                        widget,
+                        dialog,
+                        "Select New Strategy",
+                        JOptionPane.OK_CANCEL_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        null,
+                        null);
+                // if ok was pressed on the dialog
+                if (returned == JOptionPane.OK_OPTION) {
+                    final Object newStrategy = dialog.getSelected().apply(state.state);
+                    // use the beansutils to set the new value to the field
+                    try {
+                        synchronized (state.state.schedule) {
+                            PropertyUtils.setSimpleProperty(
+                                    // the object to modify
+                                    toModify,
+                                    // the name of the field
+                                    attributes.get("name"),
+                                    // the new value (table lookup)
+                                    newStrategy);
                         }
-
-                        // reb
-                        metawidget.setToInspect(metawidget.getToInspect());
+                    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
+                        System.err.print("failed to set new strategy! " + e1);
+                        e1.printStackTrace();
                     }
+
+                    // reb
+                    metawidget.setToInspect(metawidget.getToInspect());
                 }
             });
 

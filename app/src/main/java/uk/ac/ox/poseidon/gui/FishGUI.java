@@ -252,12 +252,8 @@ public class FishGUI extends GUIState {
 
         final JLabel timeLabel = new JLabel("Not Started Yet");
         (timeBox).add(timeLabel);
-        scheduleRepeatingImmediatelyAfter(new Steppable() {
-            @Override
-            public void step(SimState simState) {
-                SwingUtilities.invokeLater(() -> timeLabel.setText(state.timeString()));
-            }
-        });
+        scheduleRepeatingImmediatelyAfter(
+                (Steppable) simState -> SwingUtilities.invokeLater(() -> timeLabel.setText(state.timeString())));
 
         display2D = setupPortrayal(mainPortrayal);
 
@@ -302,6 +298,8 @@ public class FishGUI extends GUIState {
         // ports
         ports.setField(state.getPortGrid());
         ports.setPortrayalForAll(new ImagePortrayal2D(portIcon) {
+            private static final long serialVersionUID = 4649978839247355019L;
+
             @Override
             public Inspector getInspector(LocationWrapper wrapper, GUIState state) {
                 return wrapper == null ? null : new MetaInspector(wrapper.getObject(), self);
@@ -319,9 +317,8 @@ public class FishGUI extends GUIState {
             for (Map.Entry<String, FisherFactory> factory : state.getFisherFactories()) {
                 policyButtons.add(gui -> {
                     JButton button = new JButton("Add Fisher - " + factory.getKey());
-                    button.addActionListener(e -> {
-                        scheduleImmediatelyBefore(state1 -> state.createFisher(factory.getKey()));
-                    });
+                    button.addActionListener(
+                            e -> scheduleImmediatelyBefore(state1 -> state.createFisher(factory.getKey())));
                     return button;
                 });
             }

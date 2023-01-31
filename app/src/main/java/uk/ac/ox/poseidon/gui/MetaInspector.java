@@ -40,6 +40,7 @@ import uk.ac.ox.poseidon.gui.widget.*;
 @SuppressWarnings("unchecked")
 public class MetaInspector extends Inspector {
 
+    private static final long serialVersionUID = 1L;
     private final Object toInspect;
 
     private final SwingMetawidget widget = new SwingMetawidget();

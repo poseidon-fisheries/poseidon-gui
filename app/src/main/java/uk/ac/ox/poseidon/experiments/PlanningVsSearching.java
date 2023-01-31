@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import sim.display.Console;
-import sim.engine.SimState;
 import sim.engine.Steppable;
 import uk.ac.ox.oxfish.experiments.FirstPaper;
 import uk.ac.ox.oxfish.fisher.Fisher;
@@ -158,13 +157,10 @@ public class PlanningVsSearching {
             @Override
             public void start(FishState model) {
                 state.scheduleEveryXDay(
-                        new Steppable() {
-                            @Override
-                            public void step(SimState simState) {
-                                Port port = state.getPorts().iterator().next();
-                                if (port.getGasPricePerLiter() > 0.1) port.setGasPricePerLiter(0);
-                                else port.setGasPricePerLiter(8d);
-                            }
+                        (Steppable) simState -> {
+                            Port port = state.getPorts().iterator().next();
+                            if (port.getGasPricePerLiter() > 0.1) port.setGasPricePerLiter(0);
+                            else port.setGasPricePerLiter(8d);
                         },
                         StepOrder.POLICY_UPDATE,
                         90);

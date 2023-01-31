@@ -53,6 +53,7 @@ public class HashMapWidgetBuilder implements WidgetBuilder<JComponent, SwingMeta
      * for no field, return Metawidget for nested Metawidget) works better for those UI
      * frameworks that cannot instatiate widgets without adding them to containers (eg. SWT)
      */
+    @SuppressWarnings("rawtypes")
     @Override
     public JComponent buildWidget(String elementName, Map<String, String> attributes, SwingMetawidget metawidget) {
         final Class<?> actualClass = WidgetBuilderUtils.getActualClassOrType(attributes, String.class);
@@ -95,6 +96,7 @@ public class HashMapWidgetBuilder implements WidgetBuilder<JComponent, SwingMeta
     @SuppressWarnings("unchecked")
     private static class MapToTable<K, V> extends AbstractTableModel {
 
+        private static final long serialVersionUID = -6557954531472260651L;
         private final Map<K, V> delegate;
 
         public MapToTable(Map<K, V> delegate) {
@@ -180,6 +182,7 @@ public class HashMapWidgetBuilder implements WidgetBuilder<JComponent, SwingMeta
          * @param column the column whose value is to be queried
          * @return the value Object at the specified cell
          */
+        @SuppressWarnings("rawtypes")
         @Override
         public Object getValueAt(int row, int column) {
             Object[] entries = delegate.entrySet().toArray();

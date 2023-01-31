@@ -30,7 +30,7 @@ dependencies {
 
 tasks.withType<JavaCompile> {
     options.isDeprecation = true
-    options.compilerArgs.add("-Xlint:unchecked")
+    options.compilerArgs.addAll(listOf("-Werror", "-Xlint:all"))
 }
 
 tasks.withType<Tar> {

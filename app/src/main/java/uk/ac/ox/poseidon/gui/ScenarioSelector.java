@@ -36,6 +36,7 @@ import uk.ac.ox.poseidon.gui.widget.ScenarioJComponent;
  */
 public class ScenarioSelector extends JPanel implements ActionListener {
 
+    private static final long serialVersionUID = 1L;
     private final JPanel settings;
     private final JPanel scenariosPanel;
     private final HashMap<String, JRadioButton> radioButtons;

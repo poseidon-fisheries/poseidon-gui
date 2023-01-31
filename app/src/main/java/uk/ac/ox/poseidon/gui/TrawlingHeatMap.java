@@ -35,6 +35,7 @@ import uk.ac.ox.oxfish.model.data.MovingAverage;
  */
 public class TrawlingHeatMap implements Steppable {
 
+    private static final long serialVersionUID = -5155980016830191492L;
     /**
      * the actual map we want to display
      */

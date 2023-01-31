@@ -34,6 +34,7 @@ import org.metawidget.widgetbuilder.iface.WidgetBuilder;
  */
 public class EnumWidgetBuilder implements WidgetBuilder<JComponent, SwingMetawidget> {
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public JComponent buildWidget(String elementName, Map<String, String> attributes, SwingMetawidget metawidget) {
         final Class<?> actualClass = WidgetBuilderUtils.getActualClassOrType(attributes, String.class);
         if (actualClass == null || !Enum.class.isAssignableFrom(actualClass)) return null;

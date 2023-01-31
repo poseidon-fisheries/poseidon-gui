@@ -35,6 +35,7 @@ import uk.ac.ox.oxfish.utility.AlgorithmFactory;
  * users can change the scenario factory used
  * Created by carrknight on 5/29/15.
  */
+@SuppressWarnings("rawtypes")
 public class StrategyFactoryWidgetProcessor implements WidgetProcessor<JComponent, SwingMetawidget> {
 
     public static String addressFromPath(Map<String, String> attributes, SwingMetawidget metawidget) {

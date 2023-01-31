@@ -34,6 +34,8 @@ import uk.ac.ox.oxfish.model.BatchRunner;
  */
 public class BatchRunnerProgress extends JPanel implements PropertyChangeListener {
 
+    private static final long serialVersionUID = 1L;
+
     private final BatchRunner runner;
 
     private final int numberOfRuns;

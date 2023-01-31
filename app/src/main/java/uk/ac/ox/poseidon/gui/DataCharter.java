@@ -27,7 +27,6 @@ import java.util.function.Function;
 import javax.swing.*;
 import org.jfree.data.xy.XYSeries;
 import sim.display.GUIState;
-import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.engine.Stoppable;
 import sim.util.media.chart.TimeSeriesChartGenerator;
@@ -35,10 +34,7 @@ import uk.ac.ox.oxfish.model.FishState;
 import uk.ac.ox.oxfish.model.data.collectors.DataColumn;
 import uk.ac.ox.oxfish.model.data.collectors.IntervalPolicy;
 
-/**
- * Takes one or more data-columns and chart them
- * Created by carrknight on 6/9/15.
- */
+/** Takes one or more data-columns and chart them Created by carrknight on 6/9/15. */
 public class DataCharter {
 
     private final Function<FishState, Double> xColumn;
@@ -100,27 +96,25 @@ public class DataCharter {
         }
 
         // schedule for update
-        stoppable = gui.scheduleRepeatingImmediatelyAfter(new Steppable() {
-            @Override
-            public void step(SimState simState) {
+        stoppable = gui.scheduleRepeatingImmediatelyAfter((Steppable) simState -> {
 
-                // for every column
-                for (Map.Entry<DataColumn, XYSeries> entry : seriesMap.entrySet()) {
-                    if (entry.getKey().size() > entry.getValue().getItemCount()) {
-                        // should be different only by one at most
-                        //                        assert entry.getValue().getItemCount() == entry.getKey().size() + 1;
-                        // not true in fast real time situations
-                        entry.getValue()
-                                .add(
-                                        xColumn.apply((FishState) simState),
-                                        entry.getKey().getLatest());
-                    }
-
-                    assert entry.getValue().getItemCount() == entry.getKey().size();
+            // for every column
+            for (Map.Entry<DataColumn, XYSeries> entry : seriesMap.entrySet()) {
+                if (entry.getKey().size() > entry.getValue().getItemCount()) {
+                    // should be different only by one at most
+                    //                        assert entry.getValue().getItemCount() ==
+                    // entry.getKey().size() + 1;
+                    // not true in fast real time situations
+                    entry.getValue()
+                            .add(
+                                    xColumn.apply((FishState) simState),
+                                    entry.getKey().getLatest());
                 }
 
-                chart.updateChartLater(simState.schedule.getSteps());
+                assert entry.getValue().getItemCount() == entry.getKey().size();
             }
+
+            chart.updateChartLater(simState.schedule.getSteps());
         });
 
         // make visible
