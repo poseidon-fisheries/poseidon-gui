@@ -27,6 +27,11 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 }
 
+tasks.withType<JavaCompile> {
+    options.isDeprecation = true
+    options.compilerArgs.add("-Xlint:unchecked")
+}
+
 tasks.withType<Tar> {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

@@ -105,7 +105,6 @@ public class DiscretizationWidget implements WidgetBuilder<JComponent, SwingMeta
         /**
          * Invoked when an action occurs.
          *
-         * @param e
          */
         @Override
         public void actionPerformed(ActionEvent e) {

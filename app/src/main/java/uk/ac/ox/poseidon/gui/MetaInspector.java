@@ -38,6 +38,7 @@ import javax.swing.*;
  * A meta-widget implementation of the usual inspector. Makes modifying strategy parameters a lot easier
  * Created by carrknight on 6/7/15.
  */
+@SuppressWarnings("unchecked")
 public class MetaInspector extends Inspector {
 
     final private Object toInspect;

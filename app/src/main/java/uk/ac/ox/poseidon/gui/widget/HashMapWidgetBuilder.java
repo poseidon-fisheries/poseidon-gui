@@ -35,6 +35,7 @@ import java.util.Map;
  * Transform an HashMap into a JTable
  * Created by carrknight on 5/4/16.
  */
+@SuppressWarnings("unchecked")
 public class HashMapWidgetBuilder implements WidgetBuilder<JComponent, SwingMetawidget> {
 
     /**
@@ -104,6 +105,7 @@ public class HashMapWidgetBuilder implements WidgetBuilder<JComponent, SwingMeta
 
     }
 
+    @SuppressWarnings("unchecked")
     private static class MapToTable<K, V> extends AbstractTableModel {
 
         private final Map<K, V> delegate;

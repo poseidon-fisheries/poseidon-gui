@@ -221,8 +221,8 @@ public class ColorfulGrid extends FastObjectGridPortrayal2D {
      *
      * @return Value for property 'encodings'.
      */
-    public ImmutableMap<String, ColorEncoding> getEncodings() {
-        return ImmutableMap.copyOf(encodings);
+    public Map<String, ColorEncoding> getEncodings() {
+        return encodings;
     }
 
 
