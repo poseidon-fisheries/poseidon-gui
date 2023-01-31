@@ -30,3 +30,6 @@ build
 
 # Ignore Intellij IDEA folder
 .idea/
+
+# temporary meld files
+*.orig
