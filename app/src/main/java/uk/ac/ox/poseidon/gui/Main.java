@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.ox.poseidon;
+package uk.ac.ox.poseidon.gui;
 
 import com.esotericsoftware.minlog.Log;
 import com.google.common.io.Files;

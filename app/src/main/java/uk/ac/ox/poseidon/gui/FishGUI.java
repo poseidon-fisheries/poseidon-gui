@@ -48,7 +48,6 @@ import uk.ac.ox.oxfish.model.FishState;
 import uk.ac.ox.oxfish.model.scenario.FisherFactory;
 import uk.ac.ox.oxfish.utility.FishStateUtilities;
 import uk.ac.ox.oxfish.utility.fxcollections.ListChangeListener;
-import uk.ac.ox.poseidon.Main;
 import uk.ac.ox.poseidon.gui.controls.PolicyButton;
 import uk.ac.ox.poseidon.gui.drawing.*;
 
