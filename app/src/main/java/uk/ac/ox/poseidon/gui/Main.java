@@ -46,8 +46,6 @@ import uk.ac.ox.oxfish.model.scenario.Scenario;
 import uk.ac.ox.oxfish.utility.FishStateLogger;
 import uk.ac.ox.oxfish.utility.FishStateUtilities;
 import uk.ac.ox.oxfish.utility.yaml.FishYAML;
-import uk.ac.ox.poseidon.gui.FishGUI;
-import uk.ac.ox.poseidon.gui.ScenarioSelector;
 
 public class Main {
 
