@@ -1,6 +1,5 @@
 plugins {
     application
-    id("com.diffplug.spotless") version "6.14.0"
 }
 
 repositories {
@@ -43,14 +42,4 @@ tasks.withType<Zip> {
 
 tasks.withType<Test> {
     maxHeapSize = "4G"
-}
-
-spotless {
-    java {
-        palantirJavaFormat()
-        removeUnusedImports()
-        importOrder("")
-        trimTrailingWhitespace()
-        formatAnnotations()
-    }
 }
