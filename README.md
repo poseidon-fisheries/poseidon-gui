@@ -23,4 +23,12 @@ You should then be able to run it with:
 ./gradlew run
 ```
 
-Note that this repository depends on the core https://github.com/poseidon-fisheries/POSEIDON repository and that the latter has much more info about the project in general.
+Note that this repository depends on the core https://github.com/poseidon-fisheries/POSEIDON repository.
+
+## About POSEIDON
+
+A good run-down of what it is and does is available here:
+http://carrknight.github.io/poseidon/appendix.html
+
+A full fledged tutorial for this project is available here:
+http://carrknight.github.io/poseidon/tutorial/index.html
